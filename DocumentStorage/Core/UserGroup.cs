@@ -1,10 +1,5 @@
-namespace DocumentStorage.Document.Domain
+namespace DocumentStorage.Core
 {
-    public enum Role {
-        Regular,
-        Manager,
-        Admin
-    }
 
     public struct UserGroup
     {

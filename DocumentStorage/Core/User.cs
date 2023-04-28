@@ -1,4 +1,4 @@
-﻿namespace DocumentStorage.Document.Domain;
+﻿namespace DocumentStorage.Core;
 
 public struct User
 {
