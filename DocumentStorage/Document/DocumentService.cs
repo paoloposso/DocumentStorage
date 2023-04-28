@@ -8,20 +8,28 @@ namespace DocumentStorage.Document
     public class DocumentService
     {
         private readonly IDocumentRepository _documentRepository;
+        private readonly IFileStorage _fileStorage;
 
-        public DocumentService(IDocumentRepository documentRepository)
+        public DocumentService(IDocumentRepository documentRepository, IFileStorage fileStorage)
         {
             _documentRepository = documentRepository;
+            _fileStorage = fileStorage;
         }
 
-        public Task UploadDocument(Document document)
+        public async Task UploadDocument(DocumentMetadata document, byte[] content)
         {
-            throw new NotImplementedException();
+            var filePath = await _fileStorage.StoreFile(content, document.Name);
+
+            document.FilePath = filePath;
+
+            await _documentRepository.InsertDocumentMetadata(document);
         }
 
-        public Task<Document> DownloadDocument(string documentId, string userId)
+        public async Task<byte[]> DownloadDocument(string documentId, string userId)
         {
-            throw new NotImplementedException();
+            var document = await _documentRepository.GetDocumentMetadata(userId);
+
+            return await _fileStorage.ReadFile(document.FilePath);
         }
     }
 }
