@@ -27,7 +27,7 @@ namespace DocumentStorage.Document
 
         public async Task<byte[]> DownloadDocument(string documentId, string userId)
         {
-            var document = await _documentRepository.GetDocumentMetadata(userId);
+            var document = await _documentRepository.GetDocumentMetadata(documentId, userId);
 
             return await _fileStorage.ReadFile(document.FilePath);
         }
