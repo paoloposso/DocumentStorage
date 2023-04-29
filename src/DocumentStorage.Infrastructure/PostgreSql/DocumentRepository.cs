@@ -5,7 +5,6 @@ using Npgsql;
 
 namespace DocumentStorage.Infrastructure.PostgreSql;
 
-
 public class DocumentRepository : IDocumentRepository
 {
     private readonly string _connectionString;

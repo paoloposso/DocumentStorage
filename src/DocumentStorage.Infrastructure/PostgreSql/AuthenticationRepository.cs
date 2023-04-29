@@ -1,24 +1,20 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using Dapper;
-using DocumentStorage.Core;
+using DocumentStorage.Authentication;
 using Npgsql;
 
 namespace DocumentStorage.Infrastructure.PostgreSql;
 
-public class UserRepository
+public class AuthenticationRepository : IAuthenticationRepository
 {
     private readonly string _connectionString;
 
-    public UserRepository(string connectionString)
+    public AuthenticationRepository(string connectionString)
     {
         _connectionString = connectionString;
     }
     
-    public async Task<User?> GetUserByEmail(string email)
+    public async Task<(string id, string hashedPassword)?> GetUserByEmail(string email)
     {
         using var connection = new NpgsqlConnection(_connectionString);
         
@@ -40,17 +36,9 @@ public class UserRepository
             return null;
         }
 
-        // var user = new User(
-        //     id: parameters.Get<int>("id"),
-        //     email: parameters.Get<string>("email"),
-        //     name: parameters.Get<string>("name"),
-        //     // password: parameters.Get<string>("password"),
-        //     role: parameters.Get<string>("role"),
-        //     // createdAt: parameters.Get<DateTime>("created_at")
-        // );
+        var id = parameters.Get<string>("id");
+        var hashedPassword = parameters.Get<string>("password");
 
-        // return user;
-
-        return null;
+        return (id, hashedPassword);
     }
 }
