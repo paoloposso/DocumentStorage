@@ -1,6 +1,5 @@
-namespace DocumentStorage.Core
+namespace DocumentStorage.User
 {
-
     public struct UserGroup
     {
         public string Id { get; private set; }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using DocumentStorage.Authentication;
+using DocumentStorage.User;
+using DocumentStorage.Api.Model.UserController;
 
 namespace DocumentStorage.Api.Controllers;
 
@@ -8,22 +9,46 @@ namespace DocumentStorage.Api.Controllers;
 public class UserController : ControllerBase
 {
     private readonly ILogger<UserController> _logger;
-    private readonly AuthenticationService _authenticationService;
+    private readonly IUserService _service;
 
-    public UserController(ILogger<UserController> logger, AuthenticationService authenticationService)
+    public UserController(ILogger<UserController> logger, IUserService service)
     {
-        _authenticationService = authenticationService;
         _logger = logger;
+        _service = service;
     }
 
-    [HttpPost(Name = "authenticateUser")]
-    public async Task<IActionResult> Post([FromBody] AuthenticationRequest request)
+    [HttpPost(Name = "addUser")]
+    public async Task<IActionResult> Post([FromBody] CreateUserRequest request)
     {
-        if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+        try
         {
-            return BadRequest(new { message = "Email and Password are Required"});
+            await _service.AddUser(new User.User {
+                Name = request.Name,
+                Email = request.Email,
+                Password = request.Password,
+                Role = request.Role
+            });
+        }
+        catch (Exception e)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
         }
 
-        return Ok(await _authenticationService.Authenticate(request.Email, request.Password));
+        return Ok();
+    }
+
+    [HttpPatch(Name = "UpdateUserRole")]
+    public async Task<IActionResult> PatchUpdateUserRole([FromBody] UpdateRole request)
+    {
+        try
+        {
+            await _service.UpdateRole(request.Id, request.Role);
+        }
+        catch (Exception e)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+        }
+
+        return Ok();
     }
 }
