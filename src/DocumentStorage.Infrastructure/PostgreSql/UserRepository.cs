@@ -1,16 +1,24 @@
 using System.Data;
+using System.Text;
+using DocumentStorage.User;
 using Npgsql;
 using NpgsqlTypes;
+using Microsoft.Extensions.Configuration;
 
 namespace DocumentStorage.Infrastructure.PostgreSql;
 
-public class UserRepository
+public class UserRepository : IUserRepository
 {
-    private readonly string _connectionString;
+    private readonly string? _connectionString;
 
-    public UserRepository(string connectionString)
+    public UserRepository(IConfiguration configuration)
     {
-        _connectionString = connectionString;
+        _connectionString = configuration.GetConnectionString("documents_postgres");
+
+        if (_connectionString is null) 
+        {
+            throw new Exception("Connection string must be not null");
+        }
     }
 
     public async Task UpdateUserRole(string email, string role)
@@ -27,7 +35,7 @@ public class UserRepository
         await command.ExecuteNonQueryAsync();
     }
 
-    public async Task<int> InsertUser(string email, string name, byte[] hashedPassword, byte[] salt, string role)
+    public async Task<int> InsertUser(User.User user)
     {
         using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync();
@@ -35,50 +43,18 @@ public class UserRepository
         using var command = new NpgsqlCommand("user_insert", connection);
         command.CommandType = CommandType.StoredProcedure;
 
-        command.Parameters.AddWithValue("p_email", email);
-        command.Parameters.AddWithValue("p_name", name);
-        command.Parameters.AddWithValue("p_hashed_password", hashedPassword);
-        command.Parameters.AddWithValue("p_salt", salt);
-        command.Parameters.AddWithValue("p_role", role);
+        command.Parameters.AddWithValue("p_email", user.Email);
+        command.Parameters.AddWithValue("p_name", user.Name);
+        command.Parameters.AddWithValue("p_hashed_password", user.Password);
+        command.Parameters.AddWithValue("p_role", NpgsqlDbType.Integer, (int)user.Role);
 
-        // Add an output parameter to retrieve the ID of the newly inserted user
         var idParameter = new NpgsqlParameter("p_id", NpgsqlDbType.Integer);
         idParameter.Direction = ParameterDirection.Output;
         command.Parameters.Add(idParameter);
 
         await command.ExecuteNonQueryAsync();
 
-        // Retrieve the ID of the newly inserted user from the output parameter
-        return (int)idParameter.Value;
-    }
-
-
-    public async Task<User.User> GetUserByEmail(string email)
-    {
-        using var connection = new NpgsqlConnection(_connectionString);
-        await connection.OpenAsync();
-
-        using var command = new NpgsqlCommand("user_get_by_email", connection);
-        command.CommandType = CommandType.StoredProcedure;
-
-        command.Parameters.AddWithValue("p_email", email);
-
-        using var reader = await command.ExecuteReaderAsync();
-        if (await reader.ReadAsync())
-        {
-            return new User.User
-            {
-                Id = reader.GetInt32(0),
-                Email = reader.GetString(1),
-                Name = reader.GetString(2),
-                PasswordSalt = reader.GetFieldValue<byte[]>(3),
-                PasswordHash = reader.GetFieldValue<byte[]>(4),
-                Role = reader.GetString(5),
-                CreatedAt = reader.GetDateTime(6)
-            };
-        }
-
-        return null;
+        return Convert.ToInt32(idParameter.Value);
     }
 
     public async Task AddUserToGroup(int userId, int groupId)

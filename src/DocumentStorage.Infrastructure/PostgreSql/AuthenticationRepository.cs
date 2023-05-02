@@ -14,31 +14,22 @@ public class AuthenticationRepository : IAuthenticationRepository
         _connectionString = connectionString;
     }
     
-    public async Task<(string id, string hashedPassword)?> GetUserByEmail(string email)
+     public async Task<(int, string?, string?)> GetUserAuthInfoByEmail(string email)
     {
         using var connection = new NpgsqlConnection(_connectionString);
-        
         await connection.OpenAsync();
 
-        var parameters = new DynamicParameters();
-        parameters.Add("p_email", email, DbType.String, ParameterDirection.Input);
-        parameters.Add("id", DbType.Int32, direction: ParameterDirection.Output);
-        parameters.Add("email", DbType.String, direction: ParameterDirection.Output, size: 255);
-        parameters.Add("name", DbType.String, direction: ParameterDirection.Output, size: 50);
-        parameters.Add("password", DbType.String, direction: ParameterDirection.Output, size: 255);
-        parameters.Add("role", DbType.String, direction: ParameterDirection.Output, size: 10);
-        parameters.Add("created_at", DbType.DateTime, direction: ParameterDirection.Output);
+        using var command = new NpgsqlCommand("get_user_auth_info", connection);
+        command.CommandType = CommandType.StoredProcedure;
 
-        connection.Execute("user_get_by_email", parameters, commandType: CommandType.StoredProcedure);
+        command.Parameters.AddWithValue("email", email);
 
-        if (parameters.Get<int>("id").Equals(0))
+        using var reader = await command.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
         {
-            return null;
+            return (reader.GetInt32(0), reader.GetString(1), reader.GetString(2));
         }
 
-        var id = parameters.Get<string>("id");
-        var hashedPassword = parameters.Get<string>("password");
-
-        return (id, hashedPassword);
+        return (0, null, null);
     }
 }

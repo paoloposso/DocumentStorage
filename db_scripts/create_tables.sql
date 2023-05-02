@@ -1,10 +1,14 @@
+
+CREATE DATABASE [documents];
+
+\c [documents];
+
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
-  email VARCHAR(255) UNIQUE NOT NULL,
+  email VARCHAR(64) UNIQUE NOT NULL,
   name VARCHAR(50) NOT NULL,
-  salt bytea NOT NULL,
-  hash bytea NOT NULL,
-  role VARCHAR(10) NOT NULL,
+  hash VARCHAR(100) NOT NULL,
+  user_role INTEGER NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -1,54 +1,39 @@
-
--- Procedure to update the role of a user
 CREATE OR REPLACE PROCEDURE user_update_role(
-  p_email VARCHAR(255),
-  p_role VARCHAR(10)
+  p_email VARCHAR(64),
+  p_role INTEGER
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
   UPDATE users
-  SET role = p_role
+  SET user_role = p_role
   WHERE email = p_email;
 END;
 $$;
 
 CREATE OR REPLACE PROCEDURE user_insert(
-  IN p_email VARCHAR(255),
+  IN p_email VARCHAR(64),
   IN p_name VARCHAR(50),
-  IN p_hashed_password bytea,
-  IN p_salt bytea,
-  IN p_role VARCHAR(10),
+  IN p_hashed_password VARCHAR(100),
+  IN p_role INTEGER,
   OUT p_id INTEGER
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  INSERT INTO users (email, name, password_salt, password_hash, role)
-  VALUES (p_email, p_name, p_salt, p_hashed_password, p_role)
+  INSERT INTO users (email, name, hash, user_role)
+  VALUES (p_email, p_name, p_hashed_password, p_role)
   RETURNING id INTO p_id;
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION user_get_by_email(
-  p_email VARCHAR(255)
-)
-RETURNS TABLE (
-  id INTEGER,
-  email VARCHAR(255),
-  name VARCHAR(50),
-  password_salt bytea,
-  password_hash bytea,
-  role VARCHAR(10),
-  created_at TIMESTAMP
-)
-LANGUAGE plpgsql
+CREATE OR REPLACE PROCEDURE get_user_auth_info(IN email VARCHAR(64), OUT id INTEGER, OUT hash VARCHAR(100), OUT salt VARCHAR(100))
 AS $$
 BEGIN
-  RETURN QUERY SELECT id, email, name, password_salt, password_hash, role, created_at
-    FROM users WHERE email = p_email;
+  SELECT id, hash, salt INTO id, hash, salt FROM users WHERE email = get_user_auth_info.email;
 END;
-$$;
+$$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE PROCEDURE add_user_to_group(
     IN user_id INTEGER,
