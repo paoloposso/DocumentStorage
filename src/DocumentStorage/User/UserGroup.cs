@@ -2,10 +2,10 @@ namespace DocumentStorage.User
 {
     public struct UserGroup
     {
-        public string Id { get; private set; }
+        public int Id { get; private set; }
         public string Name { get; private set; }
 
-        public UserGroup(string id, string name)
+        public UserGroup(int id, string name)
         {
             Id = id;
             Name = name;

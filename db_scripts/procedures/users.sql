@@ -1,16 +1,3 @@
-CREATE OR REPLACE PROCEDURE user_update_role(
-  p_email VARCHAR(64),
-  p_role INTEGER
-)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  UPDATE users
-  SET user_role = p_role
-  WHERE email = p_email;
-END;
-$$;
-
 CREATE OR REPLACE PROCEDURE user_insert(
   IN p_email VARCHAR(64),
   IN p_name VARCHAR(50),
@@ -27,13 +14,34 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE get_user_auth_info(IN email VARCHAR(64), OUT id INTEGER, OUT hash VARCHAR(100), OUT salt VARCHAR(100))
+CREATE OR REPLACE PROCEDURE get_user_auth_info(
+  IN p_email VARCHAR(64),
+  OUT p_id INTEGER,
+  OUT p_hash VARCHAR(100)
+)
 AS $$
 BEGIN
-  SELECT id, hash, salt INTO id, hash, salt FROM users WHERE email = get_user_auth_info.email;
+  SELECT id, hash INTO p_id, p_hash FROM users WHERE email = p_email;
 END;
 $$ LANGUAGE plpgsql;
 
+
+CREATE OR REPLACE PROCEDURE update_user(
+  IN p_user_id INTEGER,
+  IN p_active BOOLEAN,
+  IN p_user_role INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  UPDATE users
+  SET active = p_active,
+      user_role = p_user_role
+  WHERE id = p_user_id;
+  
+  COMMIT;
+END;
+$$;
 
 CREATE OR REPLACE PROCEDURE add_user_to_group(
     IN user_id INTEGER,
@@ -51,5 +59,13 @@ BEGIN
         INSERT INTO group_members (group_id, user_id)
         VALUES ($2, $1);
     END IF;
+END;
+$$;
+
+CREATE OR REPLACE PROCEDURE list_users()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  SELECT id, email, name, user_role, active, created_at FROM users;
 END;
 $$;

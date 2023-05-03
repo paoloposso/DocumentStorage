@@ -5,11 +5,11 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace DocumentStorage.Authentication;
 
-public class AuthenticationService
+public class AuthenticationService : IAuthenticationService
 {
     private readonly IAuthenticationRepository _authenticationRepository;
     private const string SECRET_KEY = "secret1234567890";
-    
+
     public AuthenticationService(IAuthenticationRepository authenticationRepository)
     {
         _authenticationRepository = authenticationRepository;
@@ -17,16 +17,16 @@ public class AuthenticationService
 
     public async Task<(int, string)> Authenticate(string email, string password)
     {
-        var (id, hashPassword, salt) = await _authenticationRepository.GetUserAuthInfoByEmail(email);
+        var (id, hashPassword) = await _authenticationRepository.GetUserAuthInfoByEmail(email);
 
-        if (BCrypt.Net.BCrypt.Verify(password, hashPassword)) 
+        if (BCrypt.Net.BCrypt.Verify(password, hashPassword))
         {
             var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SECRET_KEY));
             var signingCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.Email, "john.doe@example.com")
+                new Claim(ClaimTypes.Email, email)
             };
 
             var token = new JwtSecurityToken(
@@ -39,12 +39,11 @@ public class AuthenticationService
 
             var handler = new JwtSecurityTokenHandler();
 
-            // Serialize the token to a string
             var tokenString = handler.WriteToken(token);
 
             return (id, tokenString);
         }
 
-        throw new ArgumentException("Invalid e-mail or password");
+        throw new UnauthorizedAccessException("Invalid e-mail or password");
     }
 }

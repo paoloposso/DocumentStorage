@@ -1,8 +1,11 @@
+using DocumentStorage.Core;
+
 namespace DocumentStorage.User;
 
 public interface IUserRepository
 {
-    Task UpdateUserRole(string email, string role);
+    Task UpdateUser(int id, Role role, bool active);
     Task<int> InsertUser(User user);
+    Task<IEnumerable<User>> ListUsers();
     Task AddUserToGroup(int userId, int groupId);
 }

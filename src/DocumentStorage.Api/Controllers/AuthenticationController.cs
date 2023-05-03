@@ -9,9 +9,9 @@ namespace DocumentStorage.Api.Controllers;
 public class AuthenticationController : ControllerBase
 {
     private readonly ILogger<UserController> _logger;
-    private readonly AuthenticationService _authenticationService;
+    private readonly IAuthenticationService _authenticationService;
 
-    public AuthenticationController(ILogger<UserController> logger, AuthenticationService authenticationService)
+    public AuthenticationController(ILogger<UserController> logger, IAuthenticationService authenticationService)
     {
         _authenticationService = authenticationService;
         _logger = logger;
@@ -25,8 +25,15 @@ public class AuthenticationController : ControllerBase
             return BadRequest(new { message = "Email and Password are Required"});
         }
 
-        var (id, token) =  await _authenticationService.Authenticate(request.Email, request.Password);
+        try 
+        {
+            var (id, token) =  await _authenticationService.Authenticate(request.Email, request.Password);
 
-        return Ok(new AuthenticationResponse(token, id));
+            return Ok(new AuthenticationResponse(token, id));
+        }
+        catch (UnauthorizedAccessException ex) 
+        {
+            return Unauthorized(new { message = ex.Message });
+        }
     }
 }

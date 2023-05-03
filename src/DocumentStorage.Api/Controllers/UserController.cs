@@ -17,11 +17,18 @@ public class UserController : ControllerBase
         _service = service;
     }
 
-    [HttpPost(Name = "addUser")]
+    [HttpPost(Name = "registerUser")]
     public async Task<IActionResult> Post([FromBody] CreateUserRequest request)
     {
         try
         {
+            IList<string> validationResult = request.Validate();
+
+            if (validationResult.Any())
+            {
+                return BadRequest(new { message = validationResult });
+            }
+
             await _service.AddUser(new User.User {
                 Name = request.Name,
                 Email = request.Email,
@@ -37,12 +44,41 @@ public class UserController : ControllerBase
         return Ok();
     }
 
-    [HttpPatch(Name = "UpdateUserRole")]
-    public async Task<IActionResult> PatchUpdateUserRole([FromBody] UpdateRole request)
+    [HttpPatch(Name = "updateUser")]
+    public async Task<IActionResult> Patch([FromBody] UpdateUserRequest request)
     {
+        var validationErrors = request.Validate();
+
+        if (validationErrors.Any())
+        {
+            return BadRequest(new { message = validationErrors });
+        }
+
         try
         {
-            await _service.UpdateRole(request.Id, request.Role);
+            await _service.UpdateUser(request.Id, request.Role, request.Active);
+        }
+        catch (Exception e)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+        }
+
+        return Ok();
+    }
+
+    [HttpPatch(Name = "addUserToGroups")]
+    public async Task<IActionResult> Patch([FromBody] AddUserToGroupRequest request)
+    {
+        var validationErrors = request.Validate();
+
+        if (validationErrors.Any())
+        {
+            return BadRequest(new { message = validationErrors });
+        }
+
+        try
+        {
+            await _service.AddUserToGroup(request.UserId, request.GroupIds);
         }
         catch (Exception e)
         {

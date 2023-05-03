@@ -27,8 +27,16 @@ public class UserService : IUserService
         await _userRepository.InsertUser(user);
     }
 
-    public Task UpdateRole(int id, Role role)
+    public async Task UpdateUser(int id, Role role, bool active)
     {
-        throw new NotImplementedException();
+        await _userRepository.UpdateUser(id, role, active);
+    }
+
+    public async Task AddUserToGroup(int userId, List<int> groups)
+    {
+        foreach (var group in groups)
+        {
+            await _userRepository.AddUserToGroup(userId, group);
+        }
     }
 }
