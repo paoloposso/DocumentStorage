@@ -44,20 +44,20 @@ END;
 $$;
 
 CREATE OR REPLACE PROCEDURE add_user_to_group(
-    IN user_id INTEGER,
-    IN group_id INTEGER
+    IN p_user_id INTEGER,
+    IN p_group_id INTEGER
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
     IF EXISTS (
         SELECT 1 FROM group_members
-        WHERE group_id = $2 AND user_id = $1
+        WHERE group_id = p_group_id AND user_id = p_user_id
     ) THEN
-        RAISE NOTICE 'User % is already a member of group %', $1, $2;
+        RAISE NOTICE 'User % is already a member of group %', p_user_id, p_group_id;
     ELSE
         INSERT INTO group_members (group_id, user_id)
-        VALUES ($2, $1);
+        VALUES (p_group_id, p_user_id);
     END IF;
 END;
 $$;

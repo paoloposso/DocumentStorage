@@ -8,10 +8,10 @@ namespace DocumentStorage.Api.Controllers;
 [Route("[controller]")]
 public class AuthenticationController : ControllerBase
 {
-    private readonly ILogger<UserController> _logger;
+    private readonly ILogger<AuthenticationController> _logger;
     private readonly IAuthenticationService _authenticationService;
 
-    public AuthenticationController(ILogger<UserController> logger, IAuthenticationService authenticationService)
+    public AuthenticationController(ILogger<AuthenticationController> logger, IAuthenticationService authenticationService)
     {
         _authenticationService = authenticationService;
         _logger = logger;

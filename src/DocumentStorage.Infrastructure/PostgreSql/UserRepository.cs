@@ -5,15 +5,18 @@ using Npgsql;
 using NpgsqlTypes;
 using Microsoft.Extensions.Configuration;
 using DocumentStorage.Core;
+using Microsoft.Extensions.Logging;
 
 namespace DocumentStorage.Infrastructure.PostgreSql;
 
 public class UserRepository : IUserRepository
 {
     private readonly string? _connectionString;
+    private readonly ILogger<UserRepository> _logger;
 
-    public UserRepository(IConfiguration configuration)
+    public UserRepository(ILogger<UserRepository> logger, IConfiguration configuration)
     {
+        _logger = logger;
         _connectionString = configuration.GetConnectionString("documents_postgres");
 
         if (_connectionString is null) 
@@ -96,17 +99,17 @@ public class UserRepository : IUserRepository
         // Register the Notification event handler before opening the connection
         connection.Notification += (sender, args) =>
         {
-            if (args.Channel == "NOTICE")
+            if (args.Channel.Equals("NOTICE"))
             {
-                Console.WriteLine(args.Payload);
+                _logger.LogWarning(args.Payload);
             }
         };
 
         using var command = new NpgsqlCommand("add_user_to_group", connection);
         command.CommandType = CommandType.StoredProcedure;
 
-        command.Parameters.AddWithValue("user_id", NpgsqlDbType.Integer, userId);
-        command.Parameters.AddWithValue("group_id", NpgsqlDbType.Integer, groupId);
+        command.Parameters.AddWithValue("p_user_id", NpgsqlDbType.Integer, userId);
+        command.Parameters.AddWithValue("p_group_id", NpgsqlDbType.Integer, groupId);
 
         await command.ExecuteNonQueryAsync();
     }

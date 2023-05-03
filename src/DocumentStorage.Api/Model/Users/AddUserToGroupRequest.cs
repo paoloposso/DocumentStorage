@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 using DocumentStorage.Core;
 using DocumentStorage.User;
 
-namespace DocumentStorage.Api.Model.UserController;
+namespace DocumentStorage.Api.Model;
 
 public class AddUserToGroupRequest
 {

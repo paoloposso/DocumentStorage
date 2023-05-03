@@ -10,26 +10,25 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE list_groups()
+CREATE OR REPLACE PROCEDURE list_groups(OUT cursor refcursor)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    SELECT id, name, description, created_at
-    FROM groups;
+    OPEN cursor FOR SELECT id, name, description, created_at
+        FROM groups;
 END;
 $$;
 
 CREATE OR REPLACE PROCEDURE get_group_by_id(
     IN p_id INTEGER,
     OUT p_name VARCHAR(50),
-    OUT p_description TEXT,
-    OUT p_created_at TIMESTAMP
+    OUT p_description TEXT
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    SELECT name, description, created_at
-    INTO p_name, p_description, p_created_at
+    SELECT name, description
+    INTO p_name, p_description
     FROM groups
     WHERE id = p_id;
 END;
@@ -37,13 +36,15 @@ $$;
 
 CREATE OR REPLACE PROCEDURE update_group(
     IN p_id INTEGER,
-    IN p_name VARCHAR(50)
+    IN p_name VARCHAR(50),
+    IN p_description TEXT
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
     UPDATE groups
-    SET name = p_name
+    SET name = p_name,
+    	description = p_description
     WHERE id = p_id;
 END;
 $$;
