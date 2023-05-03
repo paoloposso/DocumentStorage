@@ -66,3 +66,16 @@ BEGIN
     END IF;
 END;
 $$;
+
+CREATE OR REPLACE PROCEDURE list_group_members(
+    IN p_group_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    SELECT u.id, u.email, u.name
+    FROM users u
+    INNER JOIN group_members gm ON u.id = gm.user_id
+    WHERE gm.group_id = p_group_id;
+END;
+$$;
