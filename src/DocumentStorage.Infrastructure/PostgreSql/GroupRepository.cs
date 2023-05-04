@@ -68,27 +68,26 @@ public class GroupRepository : IGroupRepository
 
     public async Task<IEnumerable<UserGroup>> ListGroups()
     {
-        using var connection = new NpgsqlConnection(_connectionString);
-        await connection.OpenAsync();
-
-        using var command = connection.CreateCommand();
-        command.CommandText = "list_groups";
-        command.CommandType = CommandType.StoredProcedure;
-
-        command.Parameters.Add(new NpgsqlParameter("cursor", NpgsqlDbType.Refcursor)).Direction = ParameterDirection.Output;
-
         var groups = new List<UserGroup>();
 
-        using var reader = await command.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
+        using (var connection = new NpgsqlConnection(_connectionString))
         {
-            var group = new UserGroup
+            await connection.OpenAsync();
+
+            using (var command = new NpgsqlCommand("SELECT * FROM list_groups()", connection))
+            using (var reader = await command.ExecuteReaderAsync())
             {
-                Id = reader.GetInt32(reader.GetOrdinal("id")),
-                Name = reader.GetString(reader.GetOrdinal("name")),
-                Description = reader.GetString(reader.GetOrdinal("description"))
-            };
-            groups.Add(group);
+                while (await reader.ReadAsync())
+                {
+                    var group = new UserGroup
+                    {
+                        Id = reader.GetInt32(reader.GetOrdinal("id")),
+                        Name = reader.GetString(reader.GetOrdinal("name")),
+                        Description = reader.GetString(reader.GetOrdinal("description"))
+                    };
+                    groups.Add(group);
+                }
+            }
         }
 
         return groups;
@@ -100,7 +99,7 @@ public class GroupRepository : IGroupRepository
         using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync();
 
-        using var command = new NpgsqlCommand("update_group_name", connection);
+        using var command = new NpgsqlCommand("update_group", connection);
         command.CommandType = CommandType.StoredProcedure;
 
         command.Parameters.AddWithValue("p_id", NpgsqlDbType.Integer).Value = group.Id;
@@ -127,7 +126,7 @@ public class GroupRepository : IGroupRepository
 
         await command.ExecuteNonQueryAsync();
 
-        if (string.IsNullOrEmpty(noticeMessage)) 
+        if (!string.IsNullOrEmpty(noticeMessage)) 
         {
             return (false, noticeMessage);
         }

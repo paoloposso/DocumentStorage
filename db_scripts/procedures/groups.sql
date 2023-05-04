@@ -10,12 +10,18 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE list_groups(OUT cursor refcursor)
+CREATE OR REPLACE FUNCTION list_groups()
+RETURNS TABLE (
+    id integer,
+    name varchar(50),
+    description text
+)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    OPEN cursor FOR SELECT id, name, description, created_at
-        FROM groups;
+    RETURN QUERY 
+	SELECT groups.id, groups.name, groups.description
+    FROM groups;
 END;
 $$;
 

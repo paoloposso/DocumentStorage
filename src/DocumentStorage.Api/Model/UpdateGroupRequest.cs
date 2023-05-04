@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
+namespace DocumentStorage.Api.Model;
+
 public class UpdateGroupRequest
 {
     [JsonPropertyName("name")]

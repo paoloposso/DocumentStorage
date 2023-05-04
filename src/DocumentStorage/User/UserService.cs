@@ -16,15 +16,22 @@ public class UserService : IUserService
         throw new NotImplementedException();
     }
 
-    public async Task AddUser(User user)
+    public async Task<int> AddUser(User user)
     {
+        var validationErrors = user.Validate();
+
+        if (validationErrors.Any())
+        {
+            throw new ArgumentException(string.Join(",", validationErrors));
+        }
+
         var password = user.Password;
         var salt = BCrypt.Net.BCrypt.GenerateSalt();
         var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, salt);
 
         user.Password = hashedPassword;
     
-        await _userRepository.InsertUser(user);
+        return await _userRepository.InsertUser(user);
     }
 
     public async Task UpdateUser(int id, Role role, bool active)

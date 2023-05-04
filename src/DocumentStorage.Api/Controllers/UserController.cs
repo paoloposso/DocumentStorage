@@ -36,6 +36,11 @@ public class UserController : ControllerBase
                 Role = request.Role
             });
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Failed to create User");
+            return BadRequest(ex.Message);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create User");

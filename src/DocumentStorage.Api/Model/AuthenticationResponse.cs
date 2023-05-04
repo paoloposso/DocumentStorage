@@ -1,4 +1,4 @@
-namespace DocumentStorage.Authentication;
+namespace DocumentStorage.Api.Model;
 
 public class AuthenticationResponse
 {

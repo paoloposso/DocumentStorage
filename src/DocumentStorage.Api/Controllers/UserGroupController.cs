@@ -32,7 +32,7 @@ public partial class UserGroupController : ControllerBase
             await _service.AddGroup(request.Name, request.Description);
             return Ok();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to add group");
             return StatusCode(500, $"Failed to add group: {ex.Message}");
@@ -47,7 +47,7 @@ public partial class UserGroupController : ControllerBase
             var groups = await _service.ListGroups();
             return Ok(groups);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to list groups");
             return StatusCode(500, "Failed to list groups");
@@ -89,7 +89,7 @@ public partial class UserGroupController : ControllerBase
                 return StatusCode(500, result.message);
             }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, $"Failed to delete group with ID {groupId}");
             return StatusCode(500, $"Failed to delete group with ID {groupId}");
@@ -112,7 +112,7 @@ public partial class UserGroupController : ControllerBase
             await _service.UpdateGroup(group);
             return Ok();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, $"Failed to update group with ID {groupId}");
             return StatusCode(500, $"Failed to update group with ID {groupId}");

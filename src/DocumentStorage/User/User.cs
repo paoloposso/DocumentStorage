@@ -11,4 +11,20 @@ public struct User
     public bool Active { get; set; }
     public List<UserGroup> Groups { get; set; }
     public Role Role { get; set; }
+
+    public IEnumerable<string> Validate() 
+    {
+        if (string.IsNullOrEmpty(Name))
+        {
+            yield return "Name is required";
+        }
+        if (string.IsNullOrEmpty(Email))
+        {
+            yield return "Email is required";
+        }
+        if (string.IsNullOrEmpty(Password))
+        {
+            yield return "Password is required";
+        }
+    }
 }
