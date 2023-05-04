@@ -69,3 +69,18 @@ BEGIN
   SELECT id, email, name, user_role, active, created_at FROM users;
 END;
 $$;
+
+CREATE OR REPLACE PROCEDURE get_user_by_id(
+    IN p_user_id INTEGER,
+    OUT p_user_email TEXT,
+    OUT p_user_name TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    SELECT email, name
+    INTO p_user_email, p_user_name
+    FROM users
+    WHERE id = p_user_id;
+END;
+$$;

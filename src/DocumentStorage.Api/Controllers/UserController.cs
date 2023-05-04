@@ -50,8 +50,30 @@ public class UserController : ControllerBase
         return Ok();
     }
 
+    
+    [HttpGet("{userId}", Name = "getUser")]
+    public async Task<ActionResult> Get(int userId)
+    {
+        try
+        {
+            var user = await _service.GetUser(userId);
+
+            if (user is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get group");
+            return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+        }
+    }
+
     [HttpPatch(Name = "updateUser")]
-    public async Task<IActionResult> PatchUser([FromBody] UpdateUserRequest request)
+    public async Task<IActionResult> Patch([FromBody] UpdateUserRequest request)
     {
         var validationErrors = request.Validate();
 
@@ -73,7 +95,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPatch("groups", Name = "addUserToGroups")]
-    public async Task<IActionResult> PatchUserGroup([FromBody] AddUserToGroupRequest request)
+    public async Task<IActionResult> Patch([FromBody] AddUserToGroupRequest request)
     {
         var validationErrors = request.Validate();
 

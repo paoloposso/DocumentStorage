@@ -46,4 +46,16 @@ public class UserService : IUserService
             await _userRepository.AddUserToGroup(userId, group);
         }
     }
+
+    public async Task<User?> GetUser(int id)
+    {
+        var result = await _userRepository.GetUserById(id);
+
+        if (result is null) 
+        {
+            throw new ArgumentException($"User with id {id} not found");
+        }
+
+        return result;
+    }
 }

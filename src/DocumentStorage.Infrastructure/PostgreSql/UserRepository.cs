@@ -113,4 +113,44 @@ public class UserRepository : IUserRepository
 
         await command.ExecuteNonQueryAsync();
     }
+
+    public async Task<User.User?> GetUserById(int id)
+    {
+        using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync();
+
+        using var command = new NpgsqlCommand("get_user_by_id", connection);
+        command.CommandType = CommandType.StoredProcedure;
+
+        command.Parameters.AddWithValue("p_user_id", id);
+
+        command.Parameters.Add(new NpgsqlParameter("p_user_email", NpgsqlDbType.Text)).Direction = ParameterDirection.Output;
+        command.Parameters.Add(new NpgsqlParameter("p_user_name", NpgsqlDbType.Text)).Direction = ParameterDirection.Output;
+
+        try
+        {
+            await command.ExecuteNonQueryAsync();
+
+            var email = command.Parameters["p_user_email"]?.Value?.ToString();
+            var name = command.Parameters["p_user_name"]?.Value?.ToString();
+
+            if (email is null) 
+            {
+                return null;
+            }
+
+            return new User.User
+            {
+                Id = id,
+                Email = email ?? string.Empty,
+                Name = name ?? string.Empty
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while getting user with ID {UserId}", id);
+            throw;
+        }
+    }
+
 }

@@ -2,5 +2,5 @@ namespace DocumentStorage.Authentication;
 
 public interface IAuthenticationRepository
 {
-    Task<(int, string?)> GetUserAuthInfoByEmail(string email);
+    Task<(int id, string? hash)> GetUserAuthInfoByEmail(string email);
 }

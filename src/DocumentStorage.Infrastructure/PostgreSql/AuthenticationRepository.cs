@@ -21,7 +21,7 @@ public class AuthenticationRepository : IAuthenticationRepository
         }
     }
     
-    public async Task<(int, string?)> GetUserAuthInfoByEmail(string email)
+    public async Task<(int id, string? hash)> GetUserAuthInfoByEmail(string email)
     {
         using var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync();

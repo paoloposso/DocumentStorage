@@ -8,4 +8,5 @@ public interface IUserRepository
     Task<int> InsertUser(User user);
     Task<IEnumerable<User>> ListUsers();
     Task AddUserToGroup(int userId, int groupId);
+    Task<User?> GetUserById(int id);
 }

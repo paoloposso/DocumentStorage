@@ -15,7 +15,7 @@ public class AuthenticationService : IAuthenticationService
         _authenticationRepository = authenticationRepository;
     }
 
-    public async Task<(int, string)> Authenticate(string email, string password)
+    public async Task<(int id, string token)> Authenticate(string email, string password)
     {
         var (id, hashPassword) = await _authenticationRepository.GetUserAuthInfoByEmail(email);
 
