@@ -19,7 +19,7 @@ public class AuthenticationServiceTest
         
         repository
             .Setup(p => p.GetUserAuthInfoByEmail(It.Is<string>(p => p.Equals("test@test.com"))))
-            .ReturnsAsync(() => (1, hashedPassword));
+            .ReturnsAsync(() => (1, hashedPassword, 2));
 
             _service = new AuthenticationService(repository.Object);
     }

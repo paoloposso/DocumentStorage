@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 namespace DocumentStorage.Authentication;
@@ -8,25 +9,33 @@ namespace DocumentStorage.Authentication;
 public class AuthenticationService : IAuthenticationService
 {
     private readonly IAuthenticationRepository _authenticationRepository;
-    private const string SECRET_KEY = "secret1234567890";
+    private readonly string _secretKey;
+    private readonly IConfiguration _configuration;
 
-    public AuthenticationService(IAuthenticationRepository authenticationRepository)
+    public AuthenticationService(
+        IAuthenticationRepository authenticationRepository, 
+        IConfiguration configuration)
     {
+        _configuration = configuration;
         _authenticationRepository = authenticationRepository;
+        _secretKey = _configuration.GetValue<string>("Jwt:SecretKey") ?? string.Empty;
     }
 
     public async Task<(int id, string token)> Authenticate(string email, string password)
     {
-        var (id, hashPassword) = await _authenticationRepository.GetUserAuthInfoByEmail(email);
+        var (id, hashPassword, role) = await _authenticationRepository.GetUserAuthInfoByEmail(email);
 
         if (BCrypt.Net.BCrypt.Verify(password, hashPassword))
         {
-            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SECRET_KEY));
+            Core.Role userRole = (Core.Role)role;
+
+            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
             var signingCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
-                new Claim(ClaimTypes.Email, email)
+                new Claim(ClaimTypes.Email, email),
+                new Claim(ClaimTypes.Role, userRole.ToString()) // Add the role claim here
             };
 
             var token = new JwtSecurityToken(

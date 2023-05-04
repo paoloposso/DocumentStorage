@@ -17,14 +17,14 @@ $$;
 CREATE OR REPLACE PROCEDURE get_user_auth_info(
   IN p_email VARCHAR(64),
   OUT p_id INTEGER,
-  OUT p_hash VARCHAR(100)
+  OUT p_hash VARCHAR(100),
+  OUT p_role INTEGER
 )
 AS $$
 BEGIN
-  SELECT id, hash INTO p_id, p_hash FROM users WHERE email = p_email;
+  SELECT id, user_role, hash, user_role INTO p_id, p_hash, p_role FROM users WHERE email = p_email;
 END;
 $$ LANGUAGE plpgsql;
-
 
 CREATE OR REPLACE PROCEDURE update_user(
   IN p_user_id INTEGER,

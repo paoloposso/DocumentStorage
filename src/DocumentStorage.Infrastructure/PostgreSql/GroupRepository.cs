@@ -79,6 +79,12 @@ public class GroupRepository : IGroupRepository
             {
                 while (await reader.ReadAsync())
                 {
+                    if (reader["id"] is null) 
+                    {
+                        // null value indicates that there are no groups in the database
+                        return groups;
+                    }
+
                     var group = new UserGroup
                     {
                         Id = reader.GetInt32(reader.GetOrdinal("id")),
