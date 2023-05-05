@@ -12,39 +12,61 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE document_get_by_id_with_access(
-  p_document_id INTEGER,
-  p_user_id INTEGER,
-  OUT p_id INTEGER,
-  OUT p_name VARCHAR(255),
-  OUT p_description TEXT,
-  OUT p_file_path TEXT,
-  OUT p_created_by INTEGER,
-  OUT p_created_at TIMESTAMP
+CREATE OR REPLACE FUNCTION get_document_by_id_for_user(
+  document_id INTEGER,
+  user_id INTEGER
 )
-LANGUAGE plpgsql
+RETURNS TABLE (
+  id INTEGER,
+  name VARCHAR(255),
+  description TEXT,
+  file_path TEXT,
+  created_by INTEGER,
+  created_at TIMESTAMP
+)
 AS $$
 BEGIN
-  SELECT d.id, d.name, d.description, d.file_path, d.created_by, d.created_at
-  INTO p_id, p_name, p_description, p_file_path, p_created_by, p_created_at
-  FROM documents d
-  WHERE d.id = p_document_id
+  RETURN QUERY
+  SELECT documents.*
+  FROM documents
+  WHERE documents.id = document_id
     AND (
-      d.created_by = p_user_id
-      OR EXISTS (
-        SELECT 1
-        FROM document_access da
-        WHERE da.document_id = d.id
+      documents.created_by = user_id -- User created the document
+      OR EXISTS ( -- User has been granted access
+        SELECT 1 FROM document_access
+        WHERE document_access.document_id = document_id
           AND (
-            da.user_id = p_user_id
-            OR EXISTS (
-              SELECT 1
-              FROM group_members gm
-              WHERE gm.group_id = da.group_id
-                AND gm.user_id = p_user_id
+            document_access.user_id = user_id
+            OR document_access.group_id IN (
+              SELECT group_id FROM user_groups WHERE user_id = user_id
             )
           )
       )
     );
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE grant_document_access_to_user(
+  document_id INTEGER,
+  user_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  INSERT INTO document_access(document_id, user_id)
+  VALUES(document_id, user_id);
+END;
+$$;
+
+-- Procedure to grant access to a group
+CREATE OR REPLACE PROCEDURE grant_document_access_to_group(
+  document_id INTEGER,
+  group_id INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  INSERT INTO document_access(document_id, group_id)
+  VALUES(document_id, group_id);
 END;
 $$;

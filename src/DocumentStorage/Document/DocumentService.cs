@@ -1,6 +1,6 @@
 namespace DocumentStorage.Document;
 
-public class DocumentService
+public class DocumentService : IDocumentService
 {
     private readonly IDocumentRepository _documentRepository;
     private readonly IFileStorage _fileStorage;
@@ -20,10 +20,18 @@ public class DocumentService
         await _documentRepository.InsertDocumentMetadata(document);
     }
 
-    public async Task<byte[]> DownloadDocument(string documentId, string userId)
+    public async Task<(DocumentMetadata metadata, byte[] content)> DownloadDocument(int documentId, int userId)
     {
-        var document = await _documentRepository.GetDocumentMetadata(documentId, userId);
+        var document = await _documentRepository.GetDocumentByIdForUser(documentId, userId);
 
-        return await _fileStorage.ReadFile(document.FilePath);
+        if (document is null || document?.Id <= 0
+            || string.IsNullOrEmpty(document?.FilePath))
+        {
+            throw new ArgumentException("Document not found");
+        }
+
+        var content = await _fileStorage.ReadFile(document?.FilePath!);
+
+        return (document!.Value, content);
     }
 }

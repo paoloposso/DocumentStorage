@@ -36,7 +36,8 @@ public class AuthenticationService : IAuthenticationService
             var claims = new[]
             {
                 new Claim(ClaimTypes.Email, email),
-                new Claim(ClaimTypes.Role, userRole.ToString())
+                new Claim(ClaimTypes.Role, userRole.ToString()),
+                new Claim("id", id.ToString()) // Custom claim
             };
 
             var token = new JwtSecurityToken(
@@ -57,7 +58,7 @@ public class AuthenticationService : IAuthenticationService
         throw new UnauthorizedAccessException("Invalid e-mail or password");
     }
 
-    public (Role role, string? email) GetClaims(string token)
+    public (Role role, string? email, int id) GetClaims(string token)
     {
         var jwtToken = new JwtSecurityToken(token);
 
@@ -70,15 +71,16 @@ public class AuthenticationService : IAuthenticationService
 
         var role = claims!.FirstOrDefault(c => c.Type!.Equals(ClaimTypes.Role.ToString()))?.Value ?? "string";
         string? email = claims!.FirstOrDefault(c => c.Type!.Equals(ClaimTypes.Email))?.Value;
+        string? id = claims!.FirstOrDefault(c => c.Type!.Equals("id"))?.Value;
 
-        if (string.IsNullOrEmpty(role) || string.IsNullOrEmpty(email))
+        if (string.IsNullOrEmpty(role) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(id))
         {
             throw new UnauthorizedAccessException("Invalid token");
         }
 
         if (Enum.TryParse<Role>(role, out Role result))
         {
-            return (result, email);
+            return (result, email, Convert.ToInt32(id));
         }
         else
         {

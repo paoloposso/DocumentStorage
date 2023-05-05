@@ -10,7 +10,7 @@ namespace DocumentStorage.Api.Controllers;
 [ApiController]
 [Route("[controller]")]
 [Authorize]
-public partial class UserGroupController : ControllerBasex
+public partial class UserGroupController : BaseController
 {
     private readonly ILogger<UserGroupController> _logger;
     private readonly IGroupService _service;

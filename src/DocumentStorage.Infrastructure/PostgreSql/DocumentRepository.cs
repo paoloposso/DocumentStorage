@@ -2,6 +2,7 @@ using System.Data;
 using Dapper;
 using DocumentStorage.Document;
 using Npgsql;
+using NpgsqlTypes;
 
 namespace DocumentStorage.Infrastructure.PostgreSql;
 
@@ -14,34 +15,49 @@ public class DocumentRepository : IDocumentRepository
         _connectionString = connectionString;
     }
 
-    public async Task<DocumentMetadata> GetDocumentMetadata(string id, string userId)
+    public async Task<DocumentMetadata?> GetDocumentByIdForUser(int documentId, int userId)
     {
         using var connection = new NpgsqlConnection(_connectionString);
+        
+        connection.Open();
+        
+        using var command = new NpgsqlCommand("get_document_by_id_for_user", connection);
 
-        await connection.OpenAsync();
+        command.CommandType = CommandType.StoredProcedure;
 
-        var parameters = new DynamicParameters();
-        parameters.Add("p_document_id", id);
-        parameters.Add("p_user_id", userId);
+        command.Parameters.AddWithValue("p_document_id", documentId);
+        command.Parameters.AddWithValue("p_user_id", userId);
 
-        using var gridReader = connection.QueryMultiple("document_get_by_id_with_access", parameters, commandType: CommandType.StoredProcedure);
-        var doc = gridReader.ReadFirstOrDefault();
+        command.Parameters.Add(new NpgsqlParameter("p_id", NpgsqlDbType.Integer) { Direction = ParameterDirection.Output });
+        command.Parameters.Add(new NpgsqlParameter("p_name", NpgsqlDbType.Varchar) { Size = 255, Direction = ParameterDirection.Output });
+        command.Parameters.Add(new NpgsqlParameter("p_description", NpgsqlDbType.Text) { Direction = ParameterDirection.Output });
+        command.Parameters.Add(new NpgsqlParameter("p_file_path", NpgsqlDbType.Text) { Direction = ParameterDirection.Output });
+        command.Parameters.Add(new NpgsqlParameter("p_created_by", NpgsqlDbType.Integer) { Direction = ParameterDirection.Output });
+        command.Parameters.Add(new NpgsqlParameter("p_created_at", NpgsqlDbType.Timestamp) { Direction = ParameterDirection.Output });
 
-        if (doc is null)
+        await command.ExecuteNonQueryAsync();
+
+        if (command.Parameters["p_id"].Value is null)
         {
-            throw new Exception("Document not found");
+            return null;
         }
 
-        var result = new DocumentMetadata(
-            postedDate: parameters.Get<DateTime>("p_created_at"),
-            description: parameters.Get<string>("p_description"),
-            name: parameters.Get<string>("p_name"),
-            category: parameters.Get<string>("p_category"),
-            filePath: parameters.Get<string>("p_file_path"),
-            createdByUser: parameters.Get<string>("p_created_by")
-        );
+        int id = Convert.ToInt32(command.Parameters["p_id"].Value);
+        string name = Convert.ToString(command.Parameters["p_name"].Value);
+        string description = Convert.ToString(command.Parameters["p_description"].Value);
+        string filePath = Convert.ToString(command.Parameters["p_file_path"]?.Value);
+        int createdBy = Convert.ToInt32(command.Parameters["p_created_by"].Value);
+        DateTime createdAt = Convert.ToDateTime(command.Parameters["p_created_at"].Value);
 
-        return result;
+        return new DocumentMetadata
+        {
+            Id = id,
+            Name = name ?? string.Empty,
+            Description = description ?? string.Empty,
+            FilePath = filePath ?? string.Empty,
+            CreatedByUser = createdBy,
+            PostedDate = createdAt
+        };  
     }
 
     public async Task InsertDocumentMetadata(DocumentMetadata document)
@@ -50,12 +66,13 @@ public class DocumentRepository : IDocumentRepository
         
         await connection.OpenAsync();
 
-        var parameters = new DynamicParameters();
-        parameters.Add("p_name", document.Name);
-        parameters.Add("p_description", document.Description);
-        parameters.Add("p_file_path", document.FilePath);
-        parameters.Add("p_created_by", document.CreatedByUser);
+        using var command = new NpgsqlCommand("document_insert", connection);
 
-        connection.Execute("document_insert", parameters, commandType: CommandType.StoredProcedure);
+        command.Parameters.AddWithValue("p_name", document.Name);
+        command.Parameters.AddWithValue("p_description", document.Description);
+        command.Parameters.AddWithValue("p_file_path", document.FilePath);
+        command.Parameters.AddWithValue("p_created_by", document.CreatedByUser);
+
+        await command.ExecuteNonQueryAsync();
     }
 }

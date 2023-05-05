@@ -1,5 +1,6 @@
 using System.Text;
 using DocumentStorage.Authentication;
+using DocumentStorage.Document;
 using DocumentStorage.Infrastructure.PostgreSql;
 using DocumentStorage.User;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -51,6 +52,7 @@ builder.Services.AddTransient<IAuthenticationRepository, AuthenticationRepositor
 builder.Services.AddTransient<IAuthenticationService, AuthenticationService>();
 builder.Services.AddTransient<IGroupRepository, GroupRepository>();
 builder.Services.AddTransient<IGroupService, GroupService>();
+builder.Services.AddTransient<IDocumentService, DocumentService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
     options.TokenValidationParameters = new TokenValidationParameters

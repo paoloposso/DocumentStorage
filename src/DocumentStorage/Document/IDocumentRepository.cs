@@ -2,6 +2,6 @@ namespace DocumentStorage.Document;
 
 public interface IDocumentRepository
 {
+    Task<DocumentMetadata?> GetDocumentByIdForUser(int documentId, int userId);
     Task InsertDocumentMetadata(DocumentMetadata document);
-    Task<DocumentMetadata> GetDocumentMetadata(string id, string userId);
 }

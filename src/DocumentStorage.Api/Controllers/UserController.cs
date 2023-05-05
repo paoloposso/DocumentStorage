@@ -10,13 +10,15 @@ namespace DocumentStorage.Api.Controllers;
 [ApiController]
 [Route("[controller]")]
 [Authorize]
-public class UserController : ControllerBasex
+public class UserController : BaseController
 {
     private readonly ILogger<UserController> _logger;
     private readonly IUserService _service;
 
-    public UserController(ILogger<UserController> logger, 
-        IUserService service, IAuthenticationService authenticationService) : base(authenticationService)
+    public UserController(
+        ILogger<UserController> logger, 
+        IUserService service, 
+        IAuthenticationService authenticationService) : base(authenticationService)
     {
         _logger = logger;
         _service = service;
@@ -140,19 +142,5 @@ public class UserController : ControllerBasex
         }
 
         return Ok();
-    }
-
-    private bool Authorized(IEnumerable<Role> roles) 
-    {
-        string token = HttpContext.Request?.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-
-        if (string.IsNullOrEmpty(token))
-        {
-            return false;
-        }
-
-        var (role, _) = _authenticationService.GetClaims(token);
-
-        return roles.Contains(role);
     }
 }

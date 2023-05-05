@@ -6,7 +6,7 @@ namespace DocumentStorage.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class AuthenticationController : ControllerBasex
+public class AuthenticationController : BaseController
 {
     private readonly ILogger<AuthenticationController> _logger;
 
