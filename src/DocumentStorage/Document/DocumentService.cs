@@ -13,7 +13,7 @@ public class DocumentService : IDocumentService
 
     public async Task UploadDocument(DocumentMetadata document, byte[] content)
     {
-        var filePath = await _fileStorage.StoreFile(content, document.Name);
+        var filePath = await _fileStorage.StoreFileAsync(content, document.Name);
 
         document.FilePath = filePath;
 
@@ -30,7 +30,7 @@ public class DocumentService : IDocumentService
             throw new ArgumentException("Document not found");
         }
 
-        var content = await _fileStorage.ReadFile(document?.FilePath!);
+        var content = await _fileStorage.ReadFileAsync(document?.FilePath!);
 
         return (document!.Value, content);
     }

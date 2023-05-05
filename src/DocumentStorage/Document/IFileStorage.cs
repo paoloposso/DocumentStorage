@@ -2,6 +2,6 @@ namespace DocumentStorage.Document;
 
 public interface IFileStorage
 {
-    Task<string> StoreFile(byte[] fileContent, string fileName);
-    Task<byte[]> ReadFile(string filePath);
+    Task<string> StoreFileAsync(byte[] fileContent, string fileName);
+    Task<byte[]> ReadFileAsync(string filePath);
 }
