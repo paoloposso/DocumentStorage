@@ -18,7 +18,7 @@ public class AuthenticationService : IAuthenticationService
     {
         _configuration = configuration;
         _authenticationRepository = authenticationRepository;
-        _secretKey = _configuration.GetValue<string>("Jwt:SecretKey") ?? string.Empty;
+        _secretKey = _configuration.GetValue<string>("jwt:key") ?? string.Empty;
     }
 
     public async Task<(int id, string token)> Authenticate(string email, string password)
