@@ -25,7 +25,7 @@ public class AuthenticationController : ControllerBase
             return BadRequest(new { message = "Email and Password are Required"});
         }
 
-        try 
+        try
         {
             var (id, token) =  await _authenticationService.Authenticate(request.Email, request.Password);
 

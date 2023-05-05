@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using DocumentStorage.User;
 using DocumentStorage.Api.Model;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DocumentStorage.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
+[Authorize]
 public partial class UserGroupController : ControllerBase
 {
     private readonly ILogger<UserGroupController> _logger;
