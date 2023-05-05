@@ -2,18 +2,21 @@ using Microsoft.AspNetCore.Mvc;
 using DocumentStorage.User;
 using DocumentStorage.Api.Model;
 using Microsoft.AspNetCore.Authorization;
+using DocumentStorage.Authentication;
+using DocumentStorage.Core;
 
 namespace DocumentStorage.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
 [Authorize]
-public class UserController : ControllerBase
+public class UserController : ControllerBasex
 {
     private readonly ILogger<UserController> _logger;
     private readonly IUserService _service;
 
-    public UserController(ILogger<UserController> logger, IUserService service)
+    public UserController(ILogger<UserController> logger, 
+        IUserService service, IAuthenticationService authenticationService) : base(authenticationService)
     {
         _logger = logger;
         _service = service;
@@ -24,6 +27,11 @@ public class UserController : ControllerBase
     {
         try
         {
+            if (!Authorized(new Role[] { Role.Admin }))
+            {
+                return Unauthorized();
+            }
+
             IList<string> validationResult = request.Validate();
 
             if (validationResult.Any())
@@ -58,6 +66,11 @@ public class UserController : ControllerBase
     {
         try
         {
+            if (!Authorized(new Role[] { Role.Admin }))
+            {
+                return Unauthorized();
+            }
+
             var user = await _service.GetUser(userId);
 
             if (user is null)
@@ -77,6 +90,11 @@ public class UserController : ControllerBase
     [HttpPatch(Name = "updateUser")]
     public async Task<IActionResult> Patch([FromBody] UpdateUserRequest request)
     {
+         if (!Authorized(new Role[] { Role.Admin }))
+        {
+            return Unauthorized();
+        }
+
         var validationErrors = request.Validate();
 
         if (validationErrors.Any())
@@ -99,6 +117,11 @@ public class UserController : ControllerBase
     [HttpPatch("groups", Name = "addUserToGroups")]
     public async Task<IActionResult> Patch([FromBody] AddUserToGroupRequest request)
     {
+        if (!Authorized(new Role[] { Role.Admin }))
+        {
+            return Unauthorized();
+        }
+
         var validationErrors = request.Validate();
 
         if (validationErrors.Any())
@@ -117,5 +140,19 @@ public class UserController : ControllerBase
         }
 
         return Ok();
+    }
+
+    private bool Authorized(IEnumerable<Role> roles) 
+    {
+        string token = HttpContext.Request?.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+
+        if (string.IsNullOrEmpty(token))
+        {
+            return false;
+        }
+
+        var (role, _) = _authenticationService.GetClaims(token);
+
+        return roles.Contains(role);
     }
 }

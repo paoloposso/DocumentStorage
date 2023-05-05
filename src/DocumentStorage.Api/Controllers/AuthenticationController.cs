@@ -6,14 +6,13 @@ namespace DocumentStorage.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class AuthenticationController : ControllerBase
+public class AuthenticationController : ControllerBasex
 {
     private readonly ILogger<AuthenticationController> _logger;
-    private readonly IAuthenticationService _authenticationService;
 
-    public AuthenticationController(ILogger<AuthenticationController> logger, IAuthenticationService authenticationService)
+    public AuthenticationController(ILogger<AuthenticationController> logger, 
+        IAuthenticationService authenticationService) : base(authenticationService)
     {
-        _authenticationService = authenticationService;
         _logger = logger;
     }
 

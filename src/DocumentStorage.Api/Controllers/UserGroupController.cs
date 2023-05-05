@@ -2,28 +2,37 @@ using Microsoft.AspNetCore.Mvc;
 using DocumentStorage.User;
 using DocumentStorage.Api.Model;
 using Microsoft.AspNetCore.Authorization;
+using DocumentStorage.Core;
+using DocumentStorage.Authentication;
 
 namespace DocumentStorage.Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
 [Authorize]
-public partial class UserGroupController : ControllerBase
+public partial class UserGroupController : ControllerBasex
 {
     private readonly ILogger<UserGroupController> _logger;
     private readonly IGroupService _service;
 
-    public UserGroupController(ILogger<UserGroupController> logger, IGroupService service)
+    public UserGroupController(ILogger<UserGroupController> logger, IGroupService service, 
+        IAuthenticationService authenticationService) : base(authenticationService)
     {
         _service = service;
         _logger = logger;
     }
 
     [HttpPost(Name = "createGroup")]
+    [Authorize]
     public async Task<ActionResult> Post([FromBody] AddGroupRequest request)
     {
         try
         {
+            if (!Authorized(new Role[] { Role.Admin }))
+            {
+                return Unauthorized();
+            }
+
             IList<string> validationResult = request.Validate();
 
             if (validationResult.Any())
@@ -42,10 +51,16 @@ public partial class UserGroupController : ControllerBase
     }
 
     [HttpGet(Name = "listGroups")]
+    [Authorize]
     public async Task<ActionResult> Get()
     {
         try
         {
+            if (!Authorized(new Role[] { Role.Admin }))
+            {
+                return Unauthorized();
+            }
+
             var groups = await _service.ListGroups();
             return Ok(groups);
         }
@@ -57,10 +72,16 @@ public partial class UserGroupController : ControllerBase
     }
 
     [HttpGet("{groupId}")]
+    [Authorize]
     public async Task<ActionResult> Get(int groupId)
     {
         try
         {
+            if (!Authorized(new Role[] { Role.Admin }))
+            {
+                return Unauthorized();
+            }
+
             var group = await _service.GetById(groupId);
 
             if (group is null)
@@ -77,10 +98,16 @@ public partial class UserGroupController : ControllerBase
     }
 
     [HttpDelete("{groupId}", Name = "deleteGroupById")]
+    [Authorize]
     public async Task<ActionResult> Delete(int groupId)
     {
         try
         {
+            if (!Authorized(new Role[] { Role.Admin }))
+            {
+                return Unauthorized();
+            }
+
             var result = await _service.DeleteGroupById(groupId);
             if(result.successful)
             {
@@ -99,10 +126,16 @@ public partial class UserGroupController : ControllerBase
     }
 
     [HttpPut("{groupId}")]
+    [Authorize]
     public async Task<ActionResult> Put(int groupId, [FromBody] UpdateGroupRequest request)
     {
         try
         {
+            if (!Authorized(new Role[] { Role.Admin }))
+            {
+                return Unauthorized();
+            }
+
             IList<string> validationResult = request.Validate();
 
             if (validationResult.Any())

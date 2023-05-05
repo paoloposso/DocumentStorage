@@ -28,3 +28,10 @@ The swagger page will open and show the list of available endpoints.
 The unit tests are in DocumentStorage.Test. Execute them using 
 - ```dotnet test``` or
 - Run the tests individually opening the classes and selecting the tests to be run.
+
+# TODO
+
+- Upload and download documents
+- List documents
+- Get groups for a user
+- List all members of a group

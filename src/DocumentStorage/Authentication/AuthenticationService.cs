@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using DocumentStorage.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -54,5 +55,34 @@ public class AuthenticationService : IAuthenticationService
         }
 
         throw new UnauthorizedAccessException("Invalid e-mail or password");
+    }
+
+    public (Role role, string? email) GetClaims(string token)
+    {
+        var jwtToken = new JwtSecurityToken(token);
+
+        var claims = jwtToken.Claims?.Where(c => c.Type != null);
+
+        if (claims is null || !claims.Any())
+        {
+            throw new UnauthorizedAccessException("Invalid token");
+        }
+
+        var role = claims!.FirstOrDefault(c => c.Type!.Equals(ClaimTypes.Role.ToString()))?.Value ?? "string";
+        string? email = claims!.FirstOrDefault(c => c.Type!.Equals(ClaimTypes.Email))?.Value;
+
+        if (string.IsNullOrEmpty(role) || string.IsNullOrEmpty(email))
+        {
+            throw new UnauthorizedAccessException("Invalid token");
+        }
+
+        if (Enum.TryParse<Role>(role, out Role result))
+        {
+            return (result, email);
+        }
+        else
+        {
+            throw new UnauthorizedAccessException("Invalid token");
+        }
     }
 }
