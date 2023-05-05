@@ -1,4 +1,5 @@
 using DocumentStorage.Authentication;
+using Microsoft.Extensions.Configuration;
 using Moq;
 
 namespace DocumentStorage.Test;
@@ -21,7 +22,7 @@ public class AuthenticationServiceTest
             .Setup(p => p.GetUserAuthInfoByEmail(It.Is<string>(p => p.Equals("test@test.com"))))
             .ReturnsAsync(() => (1, hashedPassword, 2));
 
-            _service = new AuthenticationService(repository.Object);
+            _service = new AuthenticationService(repository.Object, new Mock<IConfiguration>().Object);
     }
 
     [Test]

@@ -10,7 +10,6 @@ public class AuthenticationController : ControllerBase
 {
     private readonly ILogger<AuthenticationController> _logger;
     private readonly IAuthenticationService _authenticationService;
-    private const string SECRET_KEY = "secret1234567890";
 
     public AuthenticationController(ILogger<AuthenticationController> logger, IAuthenticationService authenticationService)
     {

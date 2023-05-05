@@ -35,7 +35,7 @@ public class AuthenticationService : IAuthenticationService
             var claims = new[]
             {
                 new Claim(ClaimTypes.Email, email),
-                new Claim(ClaimTypes.Role, userRole.ToString()) // Add the role claim here
+                new Claim(ClaimTypes.Role, userRole.ToString())
             };
 
             var token = new JwtSecurityToken(
