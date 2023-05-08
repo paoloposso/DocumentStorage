@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using DocumentStorage.Authentication;
 using DocumentStorage.Core;
 
@@ -18,7 +14,7 @@ namespace DocumentStorage.Api.Controllers
         
         protected bool Authorized(IEnumerable<Role> roles) 
         {
-            string token = HttpContext.Request?.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            string? token = HttpContext.Request?.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
             if (string.IsNullOrEmpty(token))
             {
@@ -30,9 +26,9 @@ namespace DocumentStorage.Api.Controllers
             return roles.Contains(role);
         }
 
-        protected (Role role, string email, int id) GetClaims() 
+        protected (Role role, string? email, int id) GetClaims() 
         {
-            string token = HttpContext.Request?.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            string? token = HttpContext.Request?.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
             if (string.IsNullOrEmpty(token))
             {

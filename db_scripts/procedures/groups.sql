@@ -86,3 +86,24 @@ BEGIN
     WHERE gm.group_id = p_group_id;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION get_users_in_group(
+  IN group_id INTEGER
+)
+RETURNS TABLE (
+  id INTEGER,
+  email VARCHAR(64),
+  name VARCHAR(50),
+  user_role INTEGER,
+  active BOOLEAN,
+  created_at TIMESTAMP
+)
+AS $$
+BEGIN
+  RETURN QUERY
+    SELECT u.id, u.email, u.name, u.user_role, u.active, u.created_at
+    FROM users u
+    INNER JOIN group_members gm ON gm.user_id = u.id
+    WHERE gm.group_id = get_users_in_group.group_id;
+END;
+$$ LANGUAGE plpgsql;

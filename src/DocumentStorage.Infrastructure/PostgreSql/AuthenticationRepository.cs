@@ -6,19 +6,9 @@ using NpgsqlTypes;
 
 namespace DocumentStorage.Infrastructure.PostgreSql;
 
-public class AuthenticationRepository : IAuthenticationRepository
+public class AuthenticationRepository : BasePostgresRepository, IAuthenticationRepository
 {
-    private readonly string? _connectionString;
-
-    public AuthenticationRepository(IConfiguration configuration)
-    {
-        _connectionString = configuration.GetConnectionString("documents_postgres");
-
-        if (_connectionString is null) 
-        {
-            throw new Exception("Connection string must be not null");
-        }
-    }
+    public AuthenticationRepository(IConfiguration configuration) : base(configuration) {}
     
     public async Task<(int id, string? hash, int role)> GetUserAuthInfoByEmail(string email)
     {
@@ -39,9 +29,14 @@ public class AuthenticationRepository : IAuthenticationRepository
 
         await command.ExecuteNonQueryAsync();
 
-        var id = (command.Parameters["p_id"]?.Value) is null ? 0 : (int)command.Parameters["p_id"].Value!;
+        if (command.Parameters["p_id"]?.Value is System.DBNull) 
+        {
+            return (0, null, -1);
+        }
+
+        var id = (command.Parameters["p_id"]?.Value) is System.DBNull ? 0 : (int)command.Parameters["p_id"].Value!;
         var hash = command.Parameters["p_hash"].Value as string;
-        var role = (command.Parameters["p_role"]?.Value) is null ? -1 : ((int)command.Parameters["p_role"]!.Value!);
+        var role = (command.Parameters["p_role"]?.Value) is System.DBNull ? -1 : ((int)command.Parameters["p_role"]!.Value!);
 
         return (id, hash, role);
     }

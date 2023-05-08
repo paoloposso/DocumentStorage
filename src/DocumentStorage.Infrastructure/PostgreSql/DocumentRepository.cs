@@ -1,18 +1,17 @@
+using System;
 using System.Data;
 using Dapper;
 using DocumentStorage.Document;
+using Microsoft.Extensions.Configuration;
 using Npgsql;
 using NpgsqlTypes;
 
 namespace DocumentStorage.Infrastructure.PostgreSql;
 
-public class DocumentRepository : IDocumentRepository
+public class DocumentRepository : BasePostgresRepository, IDocumentRepository
 {
-    private readonly string _connectionString;
-
-    public DocumentRepository(string connectionString)
+    public DocumentRepository(IConfiguration configuration) : base(configuration)
     {
-        _connectionString = connectionString;
     }
 
     public async Task<DocumentMetadata?> GetDocumentByIdForUser(int documentId, int userId)
@@ -37,17 +36,17 @@ public class DocumentRepository : IDocumentRepository
 
         await command.ExecuteNonQueryAsync();
 
-        if (command.Parameters["p_id"].Value is null)
+        if (command.Parameters["p_id"].Value is DBNull)
         {
             return null;
         }
 
         int id = Convert.ToInt32(command.Parameters["p_id"].Value);
-        string name = Convert.ToString(command.Parameters["p_name"].Value);
-        string description = Convert.ToString(command.Parameters["p_description"].Value);
-        string filePath = Convert.ToString(command.Parameters["p_file_path"]?.Value);
-        int createdBy = Convert.ToInt32(command.Parameters["p_created_by"].Value);
-        DateTime createdAt = Convert.ToDateTime(command.Parameters["p_created_at"].Value);
+        var name = command.Parameters["p_name"].Value is DBNull ? string.Empty : Convert.ToString(command.Parameters["p_name"].Value);
+        var description = command.Parameters["p_description"].Value is DBNull ? string.Empty : Convert.ToString(command.Parameters["p_description"].Value);
+        var filePath = command.Parameters["p_file_path"].Value is DBNull ? string.Empty : Convert.ToString(command.Parameters["p_file_path"].Value);
+        int createdBy = command.Parameters["p_created_by"].Value is DBNull ? 0 : Convert.ToInt32(command.Parameters["p_created_by"].Value);
+        DateTime createdAt = command.Parameters["p_created_at"].Value is DBNull ? DateTime.MinValue : Convert.ToDateTime(command.Parameters["p_created_at"].Value);
 
         return new DocumentMetadata
         {

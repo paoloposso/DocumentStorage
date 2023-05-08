@@ -20,7 +20,7 @@ public class DocumentService : IDocumentService
         await _documentRepository.InsertDocumentMetadata(document);
     }
 
-    public async Task<(DocumentMetadata metadata, byte[] content)> DownloadDocument(int documentId, int userId)
+    public async Task<byte[]> DownloadDocument(int documentId, int userId)
     {
         var document = await _documentRepository.GetDocumentByIdForUser(documentId, userId);
 
@@ -32,6 +32,19 @@ public class DocumentService : IDocumentService
 
         var content = await _fileStorage.ReadFileAsync(document?.FilePath!);
 
-        return (document!.Value, content);
+        return content;
+    }
+
+    public async Task<DocumentMetadata?> GetDocumentMetadate(int documentId, int userId)
+    {
+        var document = await _documentRepository.GetDocumentByIdForUser(documentId, userId);
+
+        if (document is null || document?.Id <= 0
+            || string.IsNullOrEmpty(document?.FilePath))
+        {
+            throw new ArgumentException("Document not found");
+        }
+
+        return document;
     }
 }

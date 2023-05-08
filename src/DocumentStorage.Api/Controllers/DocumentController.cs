@@ -32,9 +32,9 @@ namespace DocumentStorage.Api.Controllers
                 }
 
                 var document = new DocumentMetadata {
-                    Name = request.Name,
-                    Description = request.Description,
-                    Category = request.Category,
+                    Name = request.Name ?? string.Empty,
+                    Description = request.Description ?? string.Empty,
+                    Category = request.Category ?? string.Empty,
                     CreatedByUser = userId
                 };
 
@@ -46,7 +46,7 @@ namespace DocumentStorage.Api.Controllers
                     await _documentService.UploadDocument(document, content);
                 }
 
-                return CreatedAtAction(nameof(DownloadDocument), new { id = document.Id }, document);
+                return Ok(document);
             }
             catch (Exception ex)
             {
@@ -61,14 +61,40 @@ namespace DocumentStorage.Api.Controllers
             return claims.id;
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> DownloadDocument(int id)
+        [HttpGet("metadata/{id}")]
+        public async Task<IActionResult> Get(int id)
         {
             try
             {
                 var userId = GetUserIdFromToken();
                 
-                var (metadata, content) = await _documentService.DownloadDocument(id, userId);
+                byte[] content = await _documentService.DownloadDocument(id, userId);
+
+                var stream = new MemoryStream(content);
+
+                return new FileStreamResult(stream, "application/octet-stream")
+                {
+                    FileDownloadName = $"document_{id}.pdf"
+                };
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpGet("doenload/{id}")]
+        public async Task<IActionResult> GetFile(int id)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                
+                byte[] content = await _documentService.DownloadDocument(id, userId);
 
                 var stream = new MemoryStream(content);
 

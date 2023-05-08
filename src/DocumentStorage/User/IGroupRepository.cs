@@ -8,4 +8,5 @@ public interface IGroupRepository
     Task Update(UserGroup group);
     Task<(bool successful, string? message)> DeleteGroupById(int id);
     Task<UserGroup?> GetGroupById(int groupId);
+    Task<IEnumerable<User>> GetUsersInGroup(int groupId);
 }

@@ -26,6 +26,11 @@ public class AuthenticationService : IAuthenticationService
     {
         var (id, hashPassword, role) = await _authenticationRepository.GetUserAuthInfoByEmail(email);
 
+        if (id <= 0 || string.IsNullOrEmpty(hashPassword) || role < 0)
+        {
+            throw new UnauthorizedAccessException("Invalid e-mail or password");
+        }
+
         if (BCrypt.Net.BCrypt.Verify(password, hashPassword))
         {
             Core.Role userRole = (Core.Role)role;

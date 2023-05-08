@@ -1,4 +1,5 @@
 using System.Data;
+using DocumentStorage.Core;
 using DocumentStorage.User;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -7,20 +8,13 @@ using NpgsqlTypes;
 
 namespace DocumentStorage.Infrastructure.PostgreSql;
 
-public class GroupRepository : IGroupRepository
+public class GroupRepository : BasePostgresRepository, IGroupRepository
 {
-    private readonly string? _connectionString;
     private readonly ILogger<GroupRepository> _logger;
 
-    public GroupRepository(ILogger<GroupRepository> logger, IConfiguration configuration)
+    public GroupRepository(ILogger<GroupRepository> logger, IConfiguration configuration) : base(configuration)
     {
         _logger = logger;
-        _connectionString = configuration.GetConnectionString("documents_postgres");
-
-        if (_connectionString is null) 
-        {
-            throw new Exception("Connection string must be not null");
-        }
     }
 
     public async Task AddGroup(string name, string description)
@@ -81,7 +75,6 @@ public class GroupRepository : IGroupRepository
                 {
                     if (reader["id"] is null) 
                     {
-                        // null value indicates that there are no groups in the database
                         return groups;
                     }
 
@@ -186,4 +179,43 @@ public class GroupRepository : IGroupRepository
         }
     }
 
+    public async Task<IEnumerable<User.User>> GetUsersInGroup(int groupId)
+    {
+        var result = new List<User.User>();
+
+        using (var connection = new NpgsqlConnection(_connectionString))
+        {
+            await connection.OpenAsync();
+            using (var command = new NpgsqlCommand("get_users_in_group", connection))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("group_id", groupId);
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        var id = reader.GetInt32(reader.GetOrdinal("id"));
+                        var email = reader.IsDBNull(reader.GetOrdinal("email")) ? null : (string)reader["email"];
+                        var name = reader.IsDBNull(reader.GetOrdinal("name")) ? null : (string)reader["name"];
+                        var userRole = reader.GetInt32(reader.GetOrdinal("user_role"));
+                        var active = reader.IsDBNull(reader.GetOrdinal("active")) ? null : (bool?)reader["active"];
+                        var createdAt = reader.GetDateTime(reader.GetOrdinal("created_at"));
+
+                        var user = new User.User
+                        {
+                            Id = id,
+                            Email = email ?? string.Empty,
+                            Name = name ?? string.Empty,
+                            Role = (Role)userRole,
+                            Active = active ?? false
+                        };
+                        result.Add(user);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
 }

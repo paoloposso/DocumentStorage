@@ -33,4 +33,9 @@ public class GroupService : IGroupService
     {
         return _repository.GetGroupById(id);
     }
+
+    public Task<IEnumerable<User>> GetUsersInGroup(int id)
+    {
+        return _repository.GetUsersInGroup(id);
+    }
 }

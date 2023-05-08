@@ -97,6 +97,32 @@ public partial class UserGroupController : BaseController
         }
     }
 
+    [HttpGet("users/{groupId}", Name="listUsers")]
+    [Authorize]
+    public async Task<ActionResult> GetUsers(int groupId)
+    {
+        try
+        {
+            if (!Authorized(new Role[] { Role.Admin }))
+            {
+                return Unauthorized();
+            }
+
+            var group = await _service.GetById(groupId);
+
+            if (group is null)
+            {
+                return NotFound("Group not found");
+            }
+            return Ok(group);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while getting group by ID {GroupId}", groupId);
+            return StatusCode(500);
+        }
+    }
+
     [HttpDelete("{groupId}", Name = "deleteGroupById")]
     [Authorize]
     public async Task<ActionResult> Delete(int groupId)
