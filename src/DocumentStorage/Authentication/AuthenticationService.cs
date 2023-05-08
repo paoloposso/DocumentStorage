@@ -10,16 +10,16 @@ namespace DocumentStorage.Authentication;
 public class AuthenticationService : IAuthenticationService
 {
     private readonly IAuthenticationRepository _authenticationRepository;
-    private readonly string _secretKey;
     private readonly IConfiguration _configuration;
+    private readonly IAuthenticationKeyRepository _authenticationKeyRepository;
 
-    public AuthenticationService(
+    public AuthenticationService(IConfiguration configuration,
         IAuthenticationRepository authenticationRepository, 
-        IConfiguration configuration)
+        IAuthenticationKeyRepository authenticationKeyRepository)
     {
         _configuration = configuration;
+        _authenticationKeyRepository = authenticationKeyRepository;
         _authenticationRepository = authenticationRepository;
-        _secretKey = _configuration.GetValue<string>("jwt:key") ?? string.Empty;
     }
 
     public async Task<(int id, string token)> Authenticate(string email, string password)
@@ -35,8 +35,7 @@ public class AuthenticationService : IAuthenticationService
         {
             Core.Role userRole = (Core.Role)role;
 
-            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
-            var signingCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+            var signingCredentials = _authenticationKeyRepository.GetSecrectKey();
 
             var claims = new[]
             {

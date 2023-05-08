@@ -1,6 +1,8 @@
 using System.Data;
+using System.Text;
 using DocumentStorage.Authentication;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -8,7 +10,12 @@ namespace DocumentStorage.Infrastructure.PostgreSql;
 
 public class AuthenticationRepository : BasePostgresRepository, IAuthenticationRepository
 {
-    public AuthenticationRepository(IConfiguration configuration) : base(configuration) {}
+    private IConfiguration _configuration;
+
+    public AuthenticationRepository(IConfiguration configuration) : base(configuration) 
+    {
+        _configuration = configuration;
+    }
     
     public async Task<(int id, string? hash, int role)> GetUserAuthInfoByEmail(string email)
     {

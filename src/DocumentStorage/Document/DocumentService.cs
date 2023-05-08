@@ -13,14 +13,15 @@ public class DocumentService : IDocumentService
 
     public async Task UploadDocument(DocumentMetadata document, byte[] content)
     {
-        var filePath = await _fileStorage.StoreFileAsync(content, document.Name);
+        var filePath = await _fileStorage.StoreFileAsync(content, Guid.NewGuid() + document.Name);
 
         document.FilePath = filePath;
+        document.PostedDate = DateTime.UtcNow;
 
         await _documentRepository.InsertDocumentMetadata(document);
     }
 
-    public async Task<byte[]> DownloadDocument(int documentId, int userId)
+    public async Task<(string fileName, byte[] fileContent)> DownloadDocument(int documentId, int userId)
     {
         var document = await _documentRepository.GetDocumentByIdForUser(documentId, userId);
 
@@ -32,10 +33,10 @@ public class DocumentService : IDocumentService
 
         var content = await _fileStorage.ReadFileAsync(document?.FilePath!);
 
-        return content;
+        return (document!.Value.Name, content);
     }
 
-    public async Task<DocumentMetadata?> GetDocumentMetadate(int documentId, int userId)
+    public async Task<DocumentMetadata?> GetDocumentMetadata(int documentId, int userId)
     {
         var document = await _documentRepository.GetDocumentByIdForUser(documentId, userId);
 
@@ -46,5 +47,10 @@ public class DocumentService : IDocumentService
         }
 
         return document;
+    }
+
+    public Task<IEnumerable<DocumentMetadata>> GetDocumentsByUserId(int userId)
+    {
+        return _documentRepository.GetDocumentsByUserId(userId);
     }
 }

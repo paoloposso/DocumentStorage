@@ -44,12 +44,13 @@ public class UserServiceTest
     }
 
     [Test]
-    public async Task ShouldThrowArgumentException()
+    public async Task ShouldThrowArgumentExceptionWithInvalidEmail()
     {
         try
         {
             await _service!.AddUser(new User.User() { 
                 Name = "Test", 
+                Email = string.Empty,
                 Role = Role.Admin, 
                 Active = true 
             });
@@ -74,8 +75,14 @@ public class UserServiceTest
     [Test]
     public async Task ShouldReturnNullInvalidId()
     {
-        var user = await _service!.GetUser(99);
-
-        Assert.IsNull(user);
+        try
+        {
+            _ = await _service!.GetUser(99);
+            Assert.Fail("Should Throw Exception");
+        }
+        catch (ArgumentException)
+        {
+            Assert.Pass();
+        }
     }
 }

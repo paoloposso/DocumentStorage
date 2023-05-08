@@ -1,5 +1,7 @@
+using System.Text;
 using DocumentStorage.Authentication;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using Moq;
 
 namespace DocumentStorage.Test;
@@ -9,6 +11,7 @@ public class AuthenticationServiceTest
     AuthenticationService? _service;
 
     string VALID_PASSWORD = "12345678abcd123";
+    string SECRET_KEY = "KEY123456&yyJKUiii89077_sdfg";
 
     [SetUp]
     public void Setup()
@@ -17,12 +20,21 @@ public class AuthenticationServiceTest
         var hashedPassword = BCrypt.Net.BCrypt.HashPassword(VALID_PASSWORD, salt);
 
         var repository = new Mock<IAuthenticationRepository>();
+        var keyRepository = new Mock<IAuthenticationKeyRepository>();
+
+        var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SECRET_KEY));
+
+        var creds = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+
+        keyRepository
+            .Setup(p => p.GetSecrectKey())
+            .Returns(creds);
         
         repository
             .Setup(p => p.GetUserAuthInfoByEmail(It.Is<string>(p => p.Equals("test@test.com"))))
             .ReturnsAsync(() => (1, hashedPassword, 2));
 
-            _service = new AuthenticationService(repository.Object, new Mock<IConfiguration>().Object);
+            _service = new AuthenticationService(new Mock<IConfiguration>().Object, repository.Object, keyRepository.Object);
     }
 
     [Test]

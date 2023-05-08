@@ -11,9 +11,9 @@ namespace DocumentStorage.Api.Controllers
     [Authorize]
     public class DocumentController : BaseController
     {
-        private readonly DocumentService _documentService;
+        private readonly IDocumentService _documentService;
 
-        public DocumentController(DocumentService documentService, 
+        public DocumentController(IDocumentService documentService, 
             IAuthenticationService authenticationService) : base(authenticationService)
         {
             _documentService = documentService;
@@ -32,10 +32,10 @@ namespace DocumentStorage.Api.Controllers
                 }
 
                 var document = new DocumentMetadata {
-                    Name = request.Name ?? string.Empty,
+                    Name = request.File.FileName ?? string.Empty,
                     Description = request.Description ?? string.Empty,
-                    Category = request.Category ?? string.Empty,
-                    CreatedByUser = userId
+                    CreatedByUser = userId,
+                    PostedDate = DateTime.UtcNow
                 };
 
                 using (var memoryStream = new MemoryStream())
@@ -46,7 +46,75 @@ namespace DocumentStorage.Api.Controllers
                     await _documentService.UploadDocument(document, content);
                 }
 
-                return Ok(document);
+                return Ok(new {name = document.Name });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpGet("metadata/{fileId}")]
+        public async Task<IActionResult> Get(int fileId)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+
+                var metadata = await _documentService.GetDocumentMetadata(fileId, userId);
+
+                return Ok(metadata);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpGet("download/{fileId}")]
+        public async Task<IActionResult> GetFile(int fileId)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                
+                var (fileName, content) = await _documentService.DownloadDocument(fileId, userId);
+
+                var stream = new MemoryStream(content);
+
+                return new FileStreamResult(stream, "application/octet-stream")
+                {
+                    FileDownloadName = fileName
+                };
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        [HttpGet("list")]
+        public async Task<IActionResult> GetFiles()
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+                
+                var metadataList = await _documentService.GetDocumentsByUserId(userId);
+
+                return Ok(metadataList.Select(p => new { id = p.Id, name = p.Name }));
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
@@ -59,58 +127,6 @@ namespace DocumentStorage.Api.Controllers
             var claims = GetClaims();
 
             return claims.id;
-        }
-
-        [HttpGet("metadata/{id}")]
-        public async Task<IActionResult> Get(int id)
-        {
-            try
-            {
-                var userId = GetUserIdFromToken();
-                
-                byte[] content = await _documentService.DownloadDocument(id, userId);
-
-                var stream = new MemoryStream(content);
-
-                return new FileStreamResult(stream, "application/octet-stream")
-                {
-                    FileDownloadName = $"document_{id}.pdf"
-                };
-            }
-            catch (ArgumentException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
-        }
-
-        [HttpGet("doenload/{id}")]
-        public async Task<IActionResult> GetFile(int id)
-        {
-            try
-            {
-                var userId = GetUserIdFromToken();
-                
-                byte[] content = await _documentService.DownloadDocument(id, userId);
-
-                var stream = new MemoryStream(content);
-
-                return new FileStreamResult(stream, "application/octet-stream")
-                {
-                    FileDownloadName = $"document_{id}.pdf"
-                };
-            }
-            catch (ArgumentException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
-            }
         }
     }
 }

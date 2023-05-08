@@ -2,6 +2,7 @@ using System.Text;
 using DocumentStorage.Authentication;
 using DocumentStorage.Document;
 using DocumentStorage.Infrastructure.FileServer;
+using DocumentStorage.Infrastructure.Jwt;
 using DocumentStorage.Infrastructure.PostgreSql;
 using DocumentStorage.User;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -53,9 +54,10 @@ builder.Services.AddTransient<IAuthenticationRepository, AuthenticationRepositor
 builder.Services.AddTransient<IAuthenticationService, AuthenticationService>();
 builder.Services.AddTransient<IGroupRepository, GroupRepository>();
 builder.Services.AddTransient<IGroupService, GroupService>();
-builder.Services.AddTransient<IDocumentRepository, DocumentRepository>();
 builder.Services.AddTransient<IFileStorage, LocalFileStorage>();
+builder.Services.AddTransient<IDocumentRepository, DocumentRepository>();
 builder.Services.AddTransient<IDocumentService, DocumentService>();
+builder.Services.AddTransient<IAuthenticationKeyRepository, AuthenticationKeyRepository>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
     options.TokenValidationParameters = new TokenValidationParameters
@@ -64,8 +66,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
             ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration?.GetValue<string>("jwt:key")
-                ?? string.Empty)),
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(
+                    builder.Configuration?.GetValue<string>("jwt:key")
+                        ?? string.Empty)),
             ClockSkew = TimeSpan.Zero
     });
 
@@ -82,7 +86,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseAuthorization();
 

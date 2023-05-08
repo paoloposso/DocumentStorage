@@ -20,33 +20,34 @@ public class DocumentRepository : BasePostgresRepository, IDocumentRepository
         
         connection.Open();
         
-        using var command = new NpgsqlCommand("get_document_by_id_for_user", connection);
+        using var cmd = new NpgsqlCommand("get_document_by_id_for_user", connection);
+    
+        cmd.CommandType = System.Data.CommandType.StoredProcedure;
 
-        command.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("p_document_id", documentId);
+        cmd.Parameters.AddWithValue("p_user_id", userId);
 
-        command.Parameters.AddWithValue("p_document_id", documentId);
-        command.Parameters.AddWithValue("p_user_id", userId);
+        cmd.Parameters.Add(new NpgsqlParameter("p_id", NpgsqlTypes.NpgsqlDbType.Integer)).Direction = System.Data.ParameterDirection.Output;
+        cmd.Parameters.Add(new NpgsqlParameter("p_name", NpgsqlTypes.NpgsqlDbType.Varchar)).Direction = System.Data.ParameterDirection.Output;
+        cmd.Parameters.Add(new NpgsqlParameter("p_description", NpgsqlTypes.NpgsqlDbType.Text)).Direction = System.Data.ParameterDirection.Output;
+        cmd.Parameters.Add(new NpgsqlParameter("p_file_path", NpgsqlTypes.NpgsqlDbType.Text)).Direction = System.Data.ParameterDirection.Output;
+        cmd.Parameters.Add(new NpgsqlParameter("p_created_by", NpgsqlTypes.NpgsqlDbType.Integer)).Direction = System.Data.ParameterDirection.Output;
+        cmd.Parameters.Add(new NpgsqlParameter("p_created_at", NpgsqlTypes.NpgsqlDbType.Timestamp)).Direction = System.Data.ParameterDirection.Output;
 
-        command.Parameters.Add(new NpgsqlParameter("p_id", NpgsqlDbType.Integer) { Direction = ParameterDirection.Output });
-        command.Parameters.Add(new NpgsqlParameter("p_name", NpgsqlDbType.Varchar) { Size = 255, Direction = ParameterDirection.Output });
-        command.Parameters.Add(new NpgsqlParameter("p_description", NpgsqlDbType.Text) { Direction = ParameterDirection.Output });
-        command.Parameters.Add(new NpgsqlParameter("p_file_path", NpgsqlDbType.Text) { Direction = ParameterDirection.Output });
-        command.Parameters.Add(new NpgsqlParameter("p_created_by", NpgsqlDbType.Integer) { Direction = ParameterDirection.Output });
-        command.Parameters.Add(new NpgsqlParameter("p_created_at", NpgsqlDbType.Timestamp) { Direction = ParameterDirection.Output });
+        await cmd.ExecuteNonQueryAsync();
 
-        await command.ExecuteNonQueryAsync();
-
-        if (command.Parameters["p_id"].Value is DBNull)
+        if (cmd.Parameters["p_id"].Value is DBNull)
         {
             return null;
+            
         }
-
-        int id = Convert.ToInt32(command.Parameters["p_id"].Value);
-        var name = command.Parameters["p_name"].Value is DBNull ? string.Empty : Convert.ToString(command.Parameters["p_name"].Value);
-        var description = command.Parameters["p_description"].Value is DBNull ? string.Empty : Convert.ToString(command.Parameters["p_description"].Value);
-        var filePath = command.Parameters["p_file_path"].Value is DBNull ? string.Empty : Convert.ToString(command.Parameters["p_file_path"].Value);
-        int createdBy = command.Parameters["p_created_by"].Value is DBNull ? 0 : Convert.ToInt32(command.Parameters["p_created_by"].Value);
-        DateTime createdAt = command.Parameters["p_created_at"].Value is DBNull ? DateTime.MinValue : Convert.ToDateTime(command.Parameters["p_created_at"].Value);
+        
+        var id = (cmd.Parameters["p_id"]?.Value) is System.DBNull ? 0 : (int)cmd.Parameters["p_id"].Value!;
+        var name = cmd.Parameters["p_name"].Value as string;
+        var description = cmd.Parameters["p_description"].Value as string;
+        var filePath = cmd.Parameters["p_file_path"].Value as string;
+        var createdBy = (cmd.Parameters["p_created_by"]?.Value) is System.DBNull ? 0 : (int)cmd.Parameters["p_created_by"].Value!;
+        var createdAt = (cmd.Parameters["p_created_at"]?.Value) is System.DBNull ? DateTime.MinValue : (DateTime)cmd.Parameters["p_created_at"].Value!;
 
         return new DocumentMetadata
         {
@@ -56,7 +57,7 @@ public class DocumentRepository : BasePostgresRepository, IDocumentRepository
             FilePath = filePath ?? string.Empty,
             CreatedByUser = createdBy,
             PostedDate = createdAt
-        };  
+        };
     }
 
     public async Task InsertDocumentMetadata(DocumentMetadata document)
@@ -66,6 +67,7 @@ public class DocumentRepository : BasePostgresRepository, IDocumentRepository
         await connection.OpenAsync();
 
         using var command = new NpgsqlCommand("document_insert", connection);
+        command.CommandType = CommandType.StoredProcedure;
 
         command.Parameters.AddWithValue("p_name", document.Name);
         command.Parameters.AddWithValue("p_description", document.Description);
@@ -74,4 +76,37 @@ public class DocumentRepository : BasePostgresRepository, IDocumentRepository
 
         await command.ExecuteNonQueryAsync();
     }
+
+    public async Task<IEnumerable<DocumentMetadata>> GetDocumentsByUserId(int userId)
+    {
+        var documents = new List<DocumentMetadata>();
+
+        using var connection = new NpgsqlConnection(_connectionString);
+
+        await connection.OpenAsync();
+
+        using var command = new NpgsqlCommand("SELECT * FROM get_documents_by_user_id(@p_user_id)", connection);
+        command.Parameters.AddWithValue("p_user_id", userId);
+
+        using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            if (reader.IsDBNull(reader.GetOrdinal("id"))) 
+            {
+                break;
+            }
+
+            var document = new DocumentMetadata
+            {
+                Id = reader.GetInt32("id"),
+                Name = reader.GetString("name")
+            };
+
+            documents.Add(document);
+        }
+
+        return documents;
+    }
+
 }

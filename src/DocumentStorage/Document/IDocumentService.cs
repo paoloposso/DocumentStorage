@@ -2,7 +2,8 @@ namespace DocumentStorage.Document;
 
 public interface IDocumentService
 {
-    Task<byte[]> DownloadDocument(int documentId, int userId);
+    Task<(string fileName, byte[] fileContent)> DownloadDocument(int documentId, int userId);
     Task UploadDocument(DocumentMetadata document, byte[] content);
-    Task<DocumentMetadata?> GetDocumentMetadate(int documentId, int userId);
+    Task<DocumentMetadata?> GetDocumentMetadata(int documentId, int userId);
+    Task<IEnumerable<DocumentMetadata>> GetDocumentsByUserId(int userId);
 }
