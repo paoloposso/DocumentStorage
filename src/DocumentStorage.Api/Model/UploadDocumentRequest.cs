@@ -7,6 +7,9 @@ namespace DocumentStorage.Api.Model
         [JsonPropertyName("description")]
         public string? Description { get; set; }
 
+        [JsonPropertyName("category")]
+        public string? Category { get; set; }
+
         [JsonPropertyName("file")]
         public IFormFile? File { get; set; }
 

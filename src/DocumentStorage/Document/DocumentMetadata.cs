@@ -7,5 +7,6 @@ public struct DocumentMetadata
     public string Description { get; set; }
     public string Name { get; set; }
     public string FilePath { get; set; }
+    public string? Category { get; set; }
     public int CreatedByUser { get; set; }
 }

@@ -31,7 +31,5 @@ The unit tests are in DocumentStorage.Test. Execute them using
 
 # TODO
 
-- Upload and download documents
-- List documents
-- Get groups for a user
-- List all members of a group
+- Add Category to Documents
+- Add end to end tests

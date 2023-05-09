@@ -73,6 +73,7 @@ public class DocumentRepository : BasePostgresRepository, IDocumentRepository
         command.Parameters.AddWithValue("p_description", document.Description);
         command.Parameters.AddWithValue("p_file_path", document.FilePath);
         command.Parameters.AddWithValue("p_created_by", document.CreatedByUser);
+        command.Parameters.AddWithValue("p_category", document.Category ?? (object)DBNull.Value);
 
         await command.ExecuteNonQueryAsync();
     }

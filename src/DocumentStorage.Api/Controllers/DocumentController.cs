@@ -40,6 +40,7 @@ namespace DocumentStorage.Api.Controllers
                 var document = new DocumentMetadata {
                     Name = request.File.FileName ?? string.Empty,
                     Description = request.Description ?? string.Empty,
+                    Category = request.Category,
                     CreatedByUser = userId,
                     PostedDate = DateTime.UtcNow
                 };

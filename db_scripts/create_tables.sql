@@ -24,8 +24,10 @@ CREATE TABLE IF NOT EXISTS documents (
   description TEXT,
   file_path TEXT NOT NULL,
   created_by INTEGER REFERENCES users(id) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  category VARCHAR(20) NULL
 );
+
 
 CREATE TABLE IF NOT EXISTS group_members (
   group_id INTEGER REFERENCES groups(id) NOT NULL,

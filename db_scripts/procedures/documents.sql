@@ -2,18 +2,16 @@ CREATE OR REPLACE PROCEDURE document_insert(
   p_name VARCHAR(255),
   p_description TEXT,
   p_file_path TEXT,
-  p_created_by INTEGER
+  p_created_by INTEGER,
+  p_category VARCHAR(20)
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-  INSERT INTO documents (name, description, file_path, created_by)
-  VALUES (p_name, p_description, p_file_path, p_created_by);
+  INSERT INTO documents (name, description, file_path, created_by, category)
+  VALUES (p_name, p_description, p_file_path, p_created_by, p_category);
 END;
 $$;
-
-
-
 
 CREATE OR REPLACE PROCEDURE get_document_by_id_for_user(
   IN p_document_id INTEGER,
