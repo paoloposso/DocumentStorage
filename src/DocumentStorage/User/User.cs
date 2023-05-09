@@ -26,5 +26,9 @@ public struct User
         {
             yield return "Password is required";
         }
+        if (!Enum.IsDefined(typeof(Role), Role))
+        {
+            yield return "Invalid role";
+        }
     }
 }

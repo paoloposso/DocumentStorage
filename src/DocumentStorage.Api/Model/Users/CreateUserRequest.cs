@@ -39,6 +39,10 @@ public class CreateUserRequest
         {
             result.Add("Password is required");
         }
+        if (!Enum.IsDefined(typeof(Role), Role)) 
+        {
+            result.Add("Invalid role");
+        }
 
         return result;
     }

@@ -1,5 +1,6 @@
 using DocumentStorage.Api.Model;
 using DocumentStorage.Authentication;
+using DocumentStorage.Core;
 using DocumentStorage.Document;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +25,11 @@ namespace DocumentStorage.Api.Controllers
         {
             try
             {
+                if (!Authorized(new Role[] { Role.Admin, Role.Manager }))
+                {
+                    return Unauthorized();
+                }
+
                 var userId = GetUserIdFromToken();
 
                 if (request.File == null || request.File.Length == 0)

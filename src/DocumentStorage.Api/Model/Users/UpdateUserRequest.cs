@@ -16,6 +16,11 @@ public class UpdateUserRequest
             result.Add("Id is required");
         }
 
+        if (!Enum.IsDefined(typeof(Role), Role))
+        {
+            result.Add("Invalid role");
+        }
+
         return result;
     }
 }
