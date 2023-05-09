@@ -36,7 +36,7 @@ public class DocumentService : IDocumentService
         return (document!.Value.Name, content);
     }
 
-    public async Task<DocumentMetadata?> GetDocumentMetadata(int documentId, int userId)
+    public async Task<DocumentMetadata> GetDocumentMetadata(int documentId, int userId)
     {
         var document = await _documentRepository.GetDocumentByIdForUser(documentId, userId);
 
@@ -46,7 +46,7 @@ public class DocumentService : IDocumentService
             throw new ArgumentException("Document not found");
         }
 
-        return document;
+        return document.Value;
     }
 
     public Task<IEnumerable<DocumentMetadata>> GetDocumentsByUserId(int userId)

@@ -67,9 +67,8 @@ public class UserServiceTest
     public async Task ShouldReturnUserById()
     {
         var user = await _service!.GetUser(1);
-
-        Assert.IsNotNull(user);
-        Assert.IsTrue(user?.Name.Equals("Test"));
+        
+        Assert.IsTrue(user.Name.Equals("Test"));
     }
 
     [Test]

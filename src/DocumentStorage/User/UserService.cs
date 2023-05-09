@@ -11,11 +11,6 @@ public class UserService : IUserService
         _userRepository = userRepository;
     }
 
-    public Task AddGroup(int id, string password)
-    {
-        throw new NotImplementedException();
-    }
-
     public async Task<int> AddUser(User user)
     {
         var validationErrors = user.Validate();
@@ -47,7 +42,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<User?> GetUser(int id)
+    public async Task<User> GetUser(int id)
     {
         var result = await _userRepository.GetUserById(id);
 
@@ -56,6 +51,6 @@ public class UserService : IUserService
             throw new ArgumentException($"User with id {id} not found");
         }
 
-        return result;
+        return result.Value;
     }
 }

@@ -16,6 +16,11 @@ public class GroupService : IGroupService
 
     public Task AddGroup(string name, string description)
     {
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentException("Name is required");
+        }
+
         return _repository.AddGroup(name, description);
     }
 
@@ -29,9 +34,14 @@ public class GroupService : IGroupService
         return _repository.DeleteGroupById(id);
     }
 
-    public Task<UserGroup?> GetById(int id)
+    public async Task<UserGroup?> GetById(int id)
     {
-        return _repository.GetGroupById(id);
+        var result = await _repository.GetGroupById(id);
+        if (result is null) 
+        {
+            throw new ArgumentException($"Group with ID {id} not found");
+        }
+        return result;
     }
 
     public Task<IEnumerable<User>> GetUsersInGroup(int id)

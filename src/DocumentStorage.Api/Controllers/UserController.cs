@@ -75,12 +75,12 @@ public class UserController : BaseController
 
             var user = await _service.GetUser(userId);
 
-            if (user is null)
-            {
-                return NotFound();
-            }
-
             return Ok(user);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Failed to get user");
+            return NotFound(ex.Message);
         }
         catch (Exception ex)
         {
