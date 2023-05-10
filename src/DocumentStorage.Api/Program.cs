@@ -64,7 +64,6 @@ var secret = Convert.FromBase64String(builder.Configuration?.GetValue<string>("j
 var symmetricKey = Convert.FromBase64String(builder.Configuration?.GetValue<string>("jwt:encryptionKey"));
 
 using Aes aes = Aes.Create();
-
 aes.Key = symmetricKey;
 aes.IV = secret.Take(16).ToArray();
 
