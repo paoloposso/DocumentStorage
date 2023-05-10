@@ -30,6 +30,4 @@ The unit tests are in DocumentStorage.Test. Execute them using
 - Run the tests individually opening the classes and selecting the tests to be run.
 
 # TODO
-
-- Add Category to Documents
 - Add end to end tests

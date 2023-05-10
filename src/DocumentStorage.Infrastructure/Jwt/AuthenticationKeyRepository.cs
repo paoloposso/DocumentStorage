@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 using DocumentStorage.Authentication;
 using Microsoft.Extensions.Configuration;
@@ -16,8 +17,21 @@ public class AuthenticationKeyRepository : IAuthenticationKeyRepository
 
     public SigningCredentials GetSecrectKey()
     {
-        var secretKeyString = _configuration.GetValue<string>("jwt:key") ?? string.Empty;
-        var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKeyString));
+        var secret = Convert.FromBase64String(_configuration?.GetValue<string>("jwt:secretKey"));
+        var symmetricKey = Convert.FromBase64String(_configuration?.GetValue<string>("jwt:encryptionKey"));
+
+        using var aes = Aes.Create();
+
+        aes.Key = symmetricKey;
+        aes.IV = secret.Take(16).ToArray();
+
+        byte[] ciphertext = secret.Skip(16).ToArray();
+
+        using ICryptoTransform decryptor = aes.CreateDecryptor();
+        byte[] decryptedKey = decryptor.TransformFinalBlock(ciphertext, 0, ciphertext.Length);
+        string jwtSecretKey = Encoding.UTF8.GetString(decryptedKey);
+
+        var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey));
 
         return new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
     }

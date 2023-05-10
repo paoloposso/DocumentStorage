@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using DocumentStorage.Authentication;
 using DocumentStorage.Api.Model;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace DocumentStorage.Api.Controllers;
 

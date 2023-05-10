@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text;
 using DocumentStorage.Authentication;
 using DocumentStorage.Document;
@@ -59,6 +60,20 @@ builder.Services.AddTransient<IDocumentRepository, DocumentRepository>();
 builder.Services.AddTransient<IDocumentService, DocumentService>();
 builder.Services.AddTransient<IAuthenticationKeyRepository, AuthenticationKeyRepository>();
 
+var secret = Convert.FromBase64String(builder.Configuration?.GetValue<string>("jwt:secretKey"));
+var symmetricKey = Convert.FromBase64String(builder.Configuration?.GetValue<string>("jwt:encryptionKey"));
+
+using Aes aes = Aes.Create();
+
+aes.Key = symmetricKey;
+aes.IV = secret.Take(16).ToArray();
+
+byte[] ciphertext = secret.Skip(16).ToArray();
+
+using ICryptoTransform decryptor = aes.CreateDecryptor();
+byte[] decryptedKey = decryptor.TransformFinalBlock(ciphertext, 0, ciphertext.Length);
+string jwtSecretKey = Encoding.UTF8.GetString(decryptedKey);
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -67,9 +82,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(
-                    builder.Configuration?.GetValue<string>("jwt:key")
-                        ?? string.Empty)),
+                Encoding.UTF8.GetBytes(jwtSecretKey ?? string.Empty)),
             ClockSkew = TimeSpan.Zero
     });
 
