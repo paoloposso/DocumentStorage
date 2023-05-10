@@ -6,22 +6,21 @@ namespace DocumentStorage.Api.Controllers
     public abstract class BaseController : Microsoft.AspNetCore.Mvc.ControllerBase
     {
         protected readonly IAuthenticationService _authenticationService;
-        private readonly string? _jwtToken;
 
         public BaseController(IAuthenticationService authenticationService)
         {
             _authenticationService = authenticationService;
-            _jwtToken = GetTokenFromHeader();
         }
         
         protected bool Authorized(IEnumerable<Role> roles) 
         {
-            if (string.IsNullOrEmpty(_jwtToken))
+            var token = HttpContext?.Request?.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            if (string.IsNullOrEmpty(token))
             {
                 return false;
             }
 
-            var (role, _, _) = _authenticationService.GetClaims(_jwtToken);
+            var (role, _, _) = _authenticationService.GetClaims(token);
 
             return roles.Contains(role);
         }
@@ -43,11 +42,6 @@ namespace DocumentStorage.Api.Controllers
             }
 
             return result;
-        }
-
-        private string? GetTokenFromHeader()
-        {
-            return HttpContext?.Request?.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
         }
     }
 }
