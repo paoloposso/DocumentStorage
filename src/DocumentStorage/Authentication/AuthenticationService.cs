@@ -1,23 +1,18 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using DocumentStorage.Core;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 
 namespace DocumentStorage.Authentication;
 
 public class AuthenticationService : IAuthenticationService
 {
     private readonly IAuthenticationRepository _authenticationRepository;
-    private readonly IConfiguration _configuration;
     private readonly IAuthenticationKeyRepository _authenticationKeyRepository;
 
-    public AuthenticationService(IConfiguration configuration,
-        IAuthenticationRepository authenticationRepository, 
+    public AuthenticationService(IAuthenticationRepository authenticationRepository, 
         IAuthenticationKeyRepository authenticationKeyRepository)
     {
-        _configuration = configuration;
         _authenticationKeyRepository = authenticationKeyRepository;
         _authenticationRepository = authenticationRepository;
     }

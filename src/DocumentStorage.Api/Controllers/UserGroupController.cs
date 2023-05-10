@@ -17,7 +17,7 @@ public partial class UserGroupController : BaseController
 
     public UserGroupController(ILogger<UserGroupController> logger, IGroupService service, 
         IAuthenticationService authenticationService) : base(authenticationService)
-    {
+    {   
         _service = service;
         _logger = logger;
     }

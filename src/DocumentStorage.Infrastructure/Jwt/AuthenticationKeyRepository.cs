@@ -17,6 +17,8 @@ public class AuthenticationKeyRepository : IAuthenticationKeyRepository
 
     public SigningCredentials GetSecrectKey()
     {
+        var test = _configuration?.GetValue<string>("jwt:secretKey");
+
         var secret = Convert.FromBase64String(_configuration?.GetValue<string>("jwt:secretKey"));
         var symmetricKey = Convert.FromBase64String(_configuration?.GetValue<string>("jwt:encryptionKey"));
 

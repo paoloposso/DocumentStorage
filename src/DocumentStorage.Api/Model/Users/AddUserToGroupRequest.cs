@@ -1,6 +1,4 @@
 using System.Text.Json.Serialization;
-using DocumentStorage.Core;
-using DocumentStorage.User;
 
 namespace DocumentStorage.Api.Model;
 

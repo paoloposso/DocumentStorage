@@ -34,7 +34,7 @@ public class AuthenticationServiceTest
             .Setup(p => p.GetUserAuthInfoByEmail(It.Is<string>(p => p.Equals("test@test.com"))))
             .ReturnsAsync(() => (1, hashedPassword, 2));
 
-            _service = new AuthenticationService(new Mock<IConfiguration>().Object, repository.Object, keyRepository.Object);
+            _service = new AuthenticationService(repository.Object, keyRepository.Object);
     }
 
     [Test]
