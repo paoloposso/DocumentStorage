@@ -26,8 +26,11 @@ The swagger page will open and show the list of available endpoints.
 
 # Unit Tests
 The unit tests are in DocumentStorage.Test. Execute them using 
-- ```dotnet test``` or
+- Go into DocumentStorage.Test folder and run ```dotnet test``` or
 - Run the tests individually opening the classes and selecting the tests to be run.
 
-# TODO
-- Add end to end tests
+# End-to-end Tests
+Go to DocumentStorage.Api.Test. 
+The Api must already be running.
+- run ```dotnet test``` or
+- Run the tests individually opening the classes and selecting the tests to be run.

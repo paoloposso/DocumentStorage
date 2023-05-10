@@ -2,10 +2,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using DocumentStorage.Api.Model;
-using DocumentStorage.Authentication;
-using DocumentStorage.Infrastructure.Jwt;
-using DocumentStorage.Infrastructure.PostgreSql;
 using DocumentStorage.User;
+using DotNetEnv;
 using Microsoft.Extensions.Configuration;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 
@@ -22,13 +20,21 @@ public class IntegrationTest
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .Build();
 
+        Env.Load();
+
         _client = new HttpClient();
 
         _baseAddress = _configuration.GetValue<string>("apiUrl")!;
+
+        _email = Environment.GetEnvironmentVariable("TEST_USER_EMAIL");
+        _password = Environment.GetEnvironmentVariable("TEST_USER_PASSWORD");
     }
 
     private HttpClient _client;
     private readonly string _baseAddress;
+    private readonly string? _email;
+    private readonly string? _password;
+
     [Fact]
     public async void ShouldAuthenticate()
     {
@@ -42,8 +48,8 @@ public class IntegrationTest
     {
         HttpResponseMessage response = await _client.PostAsync($"{_baseAddress}authentication", 
             new StringContent(JsonSerializer.Serialize(new AuthenticationRequest {
-                Email = "admin@test.com",
-                Password = "12345"
+                Email = _email,
+                Password = _password + "asdadas"
             }), Encoding.UTF8, "application/json"));
 
         var authResponse = 
@@ -75,8 +81,8 @@ public class IntegrationTest
     {
         HttpResponseMessage response = await _client.PostAsync($"{_baseAddress}authentication", 
             new StringContent(JsonSerializer.Serialize(new AuthenticationRequest {
-                Email = "admin@test.com",
-                Password = "1234"
+                Email = _email,
+                Password = _password
             }), Encoding.UTF8, "application/json"));
 
         var authResponse = 
