@@ -22,10 +22,10 @@ jobs:
           dotnet-version: '7.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore src/DocumentStorage.sln
+        run: dotnet restore DocumentStorage.sln
 
       - name: Build
-        run: dotnet build src/DocumentStorage.sln --no-restore
+        run: dotnet build DocumentStorage.sln --no-restore
 
       - name: Test
-        run: dotnet test src/DocumentStorage.Test/DocumentStorage.Test.csproj --no-build --verbosity normal
+        run: dotnet test DocumentStorage.Test/DocumentStorage.Test.csproj --no-build --verbosity normal
